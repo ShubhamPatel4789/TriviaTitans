@@ -1,0 +1,34 @@
+service: trivia-details
+
+provider:
+  name: google
+  runtime: python39
+  project: sdp17-392601
+
+plugins:
+  - serverless-google-cloudfunctions
+
+package:
+  exclude:
+    - node_modules/**
+    - .env
+
+functions:
+  getTrivia:
+    handler: get_trivia
+    events:
+      - http: trivia
+        method: GET
+
+  joinGame:
+    handler: join_game
+    events:
+      - http: trivia/join-game
+        method: POST
+
+  activeGameDetails:
+    handler: active_games
+    events:
+      - http: active-game-details
+        method: GET
+          
