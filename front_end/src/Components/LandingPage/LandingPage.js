@@ -7,7 +7,6 @@ const LandingPage = () => {
   const [generatedName, setGeneratedName] = useState('');
   const [confirmedName, setConfirmedName] = useState('');
   const navigate = useNavigate();
-
   const generate_name_URL = "http://localhost:5000/generate-team-name";
 
   const handleGenerateName = async () => {
@@ -61,7 +60,7 @@ const LandingPage = () => {
     }
   };
   const handleInviteUsers = () => {
-    navigate('/invite-users'); // Navigate to the "Invite" page
+    navigate(`/invite-users/${generatedName}`); // Navigate to the "Invite" page
   };
 
   return (

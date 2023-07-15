@@ -24,7 +24,13 @@ dynamodb = boto3.client('dynamodb')
 
 @team_name_generator_app.route("/generate-team-name", methods=["POST"])
 def generate_team_name():
-    prompt = "Generate a UNIQUE and CREATIVE team name for a quiz game with only one word"
+    # prompt = "Generate a UNIQUE and CREATIVE team name for a quiz game with only one word"
+    prompt = "Generate a UNIQUE and CREATIVE team name for a quiz game with only one word. The team name should:\n" \
+             "- Start with only letters, can containe numbers\n" \
+             "- Contain at least 6 characters\n" \
+             "- limit is maximum 2 words\n" \
+             "- Use a combination of uppercase and lowercase letters\n" \
+             "- Avoid using common English words or phrases"
     response = generate_gpt3_response(prompt)
     response = response.replace('\n', '')
     

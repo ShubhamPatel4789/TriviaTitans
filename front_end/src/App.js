@@ -9,7 +9,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/invite-users" element={<InviteUsers />} />
+          <Route path="/invite-users/:teamName" element={<InviteUsers />} />
         </Routes>
       </Router>
     </div>

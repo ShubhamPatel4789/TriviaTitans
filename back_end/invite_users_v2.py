@@ -38,17 +38,17 @@ def invite_users(teamName):
 #             Subject=subject
 #         )
 # Subscribe the emails to the SNS topic
-def subscribe_user(email):
-    # for email in emails:
-    try:
-        response = sns.subscribe(
-            TopicArn=topic_arn,
-            Protocol='email',
-            Endpoint=email
-        )
-        print(f'Subscribed {email} to the topic.')
-    except Exception as e:
-        print(f'Error subscribing {email}: {str(e)}')
+def subscribe_user(emails):
+    for email in emails:
+        try:
+            response = sns.subscribe(
+                TopicArn=topic_arn,
+                Protocol='email',
+                Endpoint=email
+            )
+            print(f'Subscribed {email} to the topic.')
+        except Exception as e:
+            print(f'Error subscribing {email}: {str(e)}')
 
 def generate_invitation_message(member, sender):
     user_name = member.split('@')[0]
@@ -83,11 +83,11 @@ def send_invitations(teamName):
 
         # Parse the JSON and extract email addresses
         emails = [email for email in email_list]
-        for email in emails:
-            subscribe_user(email)
-            message = generate_invitation_message(email,"<add_sender>")
-            subject = 'Invitation to Join Team: '+teamName
-            email_invite(email,message,subject)
+        # for email in emails:
+        subscribe_user(emails)
+        message = generate_invitation_message("","<add_sender>")
+        subject = 'Invitation to Join Team: '+teamName
+        email_invite(emails,message,subject)
         return 200
     
     except KeyError:

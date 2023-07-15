@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 const InviteUsersPage = () => {
+  const { teamName } = useParams();
+
   const [email, setEmail] = useState('');
   const [emailList, setEmailList] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
-  const invite_users_URL = "http://localhost:5000/invite-users"
+  const invite_users_URL = `http://localhost:5000/invite-users/${teamName}`;
   const handleAddEmail = () => {
     if (validateEmail(email)) {
       setEmailList([...emailList, email]);
@@ -52,6 +55,7 @@ const InviteUsersPage = () => {
   return (
     <div>
       <h1>Invite Users</h1>
+      <h2>Team Name : {teamName}</h2>
       <div>
         <input
           type="text"
