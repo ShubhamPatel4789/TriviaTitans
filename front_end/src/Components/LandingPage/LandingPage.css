@@ -1,0 +1,55 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+    background: linear-gradient(#11998E, #38EF7D);
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+  .container h1 {
+    font-weight: bold;
+    color: #000000;
+    margin-bottom: 20px;
+  }
+
+  .container form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .container label {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    color: #000000;
+  }
+
+  .container input[type='text'],
+  .container input[type='password'],
+  .container input[type='email'] {
+    width: 300px;
+    padding: 10px;
+    margin-top: 5px;
+    border: none;
+    border-radius: 5px;
+  }
+
+  .container button {
+    width: 200px;
+    padding: 10px;
+    margin-top: 20px;
+    background-color: #ffcc00;
+    color: #000000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .container button:hover {
+    background-color: #ffc000;
+    color: #ffffff;
+  }
