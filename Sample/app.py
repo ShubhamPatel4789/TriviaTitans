@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 import openai
 from flask_cors import CORS
+import boto3
 
 # app = Flask(__name__) # Initialize the Flask app
 # CORS(app)
@@ -21,6 +22,9 @@ def add_headers(response):
 # openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.api_key = "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"
 
+# Create DynamoDB client
+dynamodb = boto3.client('dynamodb')
+
 
 def generate_gpt3_response(user_text, print_output=False):
     completions = openai.Completion.create(
@@ -37,19 +41,41 @@ def generate_gpt3_response(user_text, print_output=False):
 
     return completions.choices[0].text
     # return completions
-@app.route("/generate-team-name",methods=["POST"])
+@app.route("/generate-team-name", methods=["POST"])
 def generate_team_name():
-    # user_prompt = request.json['userPrompt']
-    # request_data = request.get_json()
-    # print(request_data)
-    # user_prompt = request_data['userPrompt']
-
-    # print(request.headers)
-    prompt = "Generate a UNIQUE and CREATIVE team name for a quiz game with only one word"#+user_prompt
+    prompt = "Generate a UNIQUE and CREATIVE team name for a quiz game with only one word"
     response = generate_gpt3_response(prompt)
     response = response.replace('\n', '')
-    print(jsonify(response))
-    return jsonify(response),200
-    # return response,200
+    
+    # Check if the generated name already exists in DynamoDB
+    team_name_exists = check_team_name_exists(response)
+    while team_name_exists:
+        response = generate_gpt3_response(prompt)
+        response = response.replace('\n', '')
+        team_name_exists = check_team_name_exists(response)
+    
+    # Return the generated name
+    return jsonify(response), 200
+
+def check_team_name_exists(team_name):
+    response = dynamodb.get_item(
+        TableName='Teams',
+        Key={
+            'teamName': {'S': team_name}
+        }
+    )
+    return 'Item' in response
+
+@app.route("/confirm-team-name",methods=["POST"])
+def confirm_team_name():
+    team_name = request.json['teamName']
+    # Add the team name record to DynamoDB table 'Teams'
+    response = dynamodb.put_item(
+        TableName='Teams',
+        Item={
+            'teamName': {'S': team_name}
+        }
+    )
+    return jsonify({'message': 'Record added successfully'}), 200
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
