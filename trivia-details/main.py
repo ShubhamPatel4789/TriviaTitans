@@ -6,6 +6,12 @@ import uuid
 
 db = firestore.Client()
 
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'  # Allow requests from any domain
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'  # Allow the specified HTTP methods
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'  # Allow the specified request header
+    return response
+
 def get_trivia(request):
     try:
         category = request.args.get('filter[category]', None)
@@ -41,11 +47,11 @@ def get_trivia(request):
             }
             results.append(result_data)
 
-        return jsonify(results), 200
+        return add_cors_headers(jsonify(results)), 200
     except Exception as e:
         # Log the error and return a 503 Service Unavailable error
         print(str(e))
-        return jsonify({'error': 'Service Unavailable'}), 503
+        return add_cors_headers(jsonify({'error': 'Service Unavailable'})), 503
 
 
 def join_game(request):
@@ -55,7 +61,7 @@ def join_game(request):
 
         if not email_id or not trivia_id:
             # Return a 400 Bad Request error if emailId or triviaId is missing
-            return jsonify({'error': 'Both emailId and triviaId parameters are required.'}), 400
+            return add_cors_headers(jsonify({'error': 'Both emailId and triviaId parameters are required.'})), 400
 
         # Check if the 'active-games' collection exists, and create it if not present
 
@@ -75,7 +81,7 @@ def join_game(request):
                 game_data = game_doc.to_dict()
                 participant_emails = game_data.get('participantEmails', [])
                 if email_id in participant_emails:
-                    return jsonify({'message': 'Email already registered.', 'gameId': game_doc.id}), 200
+                    return add_cors_headers(jsonify({'message': 'Email already registered.', 'gameId': game_doc.id})), 200
                
                 participant_emails.append(email_id)
                 game_data['participantEmails'] = participant_emails
@@ -84,7 +90,7 @@ def join_game(request):
                 # Log the join game activity
                 logging.info(f"Added participant {email_id} to existing game {game_doc.id}")
 
-                return jsonify({'message': 'Successfully joined the game.', 'gameId': game_doc.id}), 200
+                return add_cors_headers(jsonify({'message': 'Successfully joined the game.', 'gameId': game_doc.id})), 200
 
         # Search for the trivia in the 'categoryTrivia' collection
         category_trivia_collection = db.collection('trivia')
@@ -111,15 +117,15 @@ def join_game(request):
                 # Log the join game activity
                 logging.info(f"Created new game {game_id} with participant {email_id}")
 
-                return jsonify({'message': 'Successfully joined the game.', 'gameId': game_id}), 200
+                return add_cors_headers(jsonify({'message': 'Successfully joined the game.', 'gameId': game_id})), 200
         else:
             # Return a 404 Not Found error if the trivia with the provided triviaId is not found
-            return jsonify({'error': 'Trivia not found.'}), 404
+            return add_cors_headers(jsonify({'error': 'Trivia not found.'})), 404
 
     except Exception as e:
         # Log the error and return a 503 Service Unavailable error
         logging.error(str(e))
-        return jsonify({'error': 'Service Unavailable'}), 503
+        return add_cors_headers(jsonify({'error': 'Service Unavailable'})), 503
 
 def active_games(request):
     try:
@@ -153,11 +159,11 @@ def active_games(request):
 
                 }
                 games.append(game_resp)
-        return jsonify({'games': games}), 200
+        return add_cors_headers(jsonify({'games': games})), 200
     except Exception as e:
         # Log the error and return a 503 Service Unavailable error
         logging.error(str(e))
-        return jsonify({'error': 'Service Unavailable'}), 503
+        return add_cors_headers(jsonify({'error': 'Service Unavailable'})), 503
 
 
 def format_timestamp(timestamp):
