@@ -7,7 +7,8 @@ const LandingPage = () => {
   const [generatedName, setGeneratedName] = useState('');
   const [confirmedName, setConfirmedName] = useState('');
   const navigate = useNavigate();
-  const generate_name_URL = "http://localhost:5000/generate-team-name";
+  const generate_name_URL = "https://w7b2jmg6rc.execute-api.us-east-1.amazonaws.com//generate-team-name";
+  // const generate_name_URL = "http://localhost:5000/generate-team-name";
 
   const handleGenerateName = async () => {
     try {
@@ -40,7 +41,8 @@ const LandingPage = () => {
 
 
   const handleConfirmName = async () => {
-    const confirm_name_URL = "http://localhost:5000/confirm-team-name";
+    const confirm_name_URL = "https://w7b2jmg6rc.execute-api.us-east-1.amazonaws.com/confirm-team-name";
+    // const confirm_name_URL = "http://localhost:5000/confirm-team-name";
     try {
       const response = await fetch(confirm_name_URL, {
         method: 'POST',

@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, Blueprint
-from flask_cors import CORS
+# from flask_cors import CORS
 import boto3
 from botocore.exceptions import NoCredentialsError
 import requests, time
