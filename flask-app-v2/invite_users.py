@@ -2,7 +2,6 @@ from flask import Flask, jsonify, request, Blueprint
 # from flask_cors import CORS
 import boto3
 from botocore.exceptions import NoCredentialsError
-import requests, time
 
 app = Flask(__name__)
 
@@ -18,9 +17,9 @@ dynamodb = boto3.client('dynamodb')
 
 # Create SNS client
 sns = boto3.client('sns')
-topic_arn = 'arn:aws:sns:us-east-1:901937685861:TeamInvitation'
-
-
+# topic_arn = 'arn:aws:sns:us-east-1:000966082997:TeamInvitation'
+# topic_arn = "arn:aws:sns:us-east-1:000966082997:TeamInvitation_v2.fifo"
+topic_arn = "arn:aws:sns:us-east-1:000966082997:TeamInvitationV3"
 @invite_users_app.route("/invite-users/<teamName>",methods=["POST"])
 def invite_users(teamName):
     
@@ -40,55 +39,26 @@ def invite_users(teamName):
 #             Subject=subject
 #         )
 # Subscribe the emails to the SNS topic
-def subscribe_user(email,teamName):
-    # for email in emails:
-    try:
-        response = sns.subscribe(
-            TopicArn=topic_arn,
-            Protocol='email',
-            Endpoint=email
-        )
-        # subscribe_url = response['SubscribeURL']
-        # print(subscribe_url)
-        # check_subscription_status(subscribe_url,email,teamName)
-        print(f'Subscribed {email} to the topic.')
-    except Exception as e:
-        print(f'Error subscribing {email}: {str(e)}')
-
-def check_subscription_status(subscribe_url,email,teamName):
-    response = requests.get(subscribe_url)
-    if response.status_code == 200:
-        print(f'Subscription confirmed for {email}')
-        # Add the user to the "users" key in the "Teams" table in DynamoDB
-        add_user_to_team(email,teamName)
-
-def add_user_to_team(email, teamName):
-    # Define the table name and key values
-    table_name = 'Teams'
-    team_name = teamName
-
-    try:
-        response = dynamodb.update_item(
-            TableName=table_name,
-            Key={'teamName': {'S': team_name}},
-            UpdateExpression='SET #users = list_append(if_not_exists(#users, :empty_list), :user)',
-            ExpressionAttributeNames={'#users': 'users'},
-            ExpressionAttributeValues={':user': {'L': [{'S': email}]}, ':empty_list': {'L': []}},
-            ReturnValues='ALL_NEW'
-        )
-        print(f'User {email} added to team {team_name}')
-    except Exception as e:
-        print(f'Error adding user {email} to team {team_name}: {str(e)}')
-
+def subscribe_user(emails):
+    for email in emails:
+        try:
+            response = sns.subscribe(
+                TopicArn=topic_arn,
+                Protocol='email',
+                Endpoint=email
+            )
+            print(f'Subscribed {email} to the topic.')
+        except Exception as e:
+            print(f'Error subscribing {email}: {str(e)}')
 
 def generate_invitation_message(member, sender):
     user_name = member.split('@')[0]
-    message = f"Dear Member,\n\n"
+    message = f"Dear {user_name},\n\n"
     message += "We are excited to invite you to join our team! We believe your skills and expertise will greatly contribute to our success.\n\n"
     # message += "To accept the invitation and become a member of our team, please click the 'Confirm Subscription' link.\n\n"
     message += "We look forward to having you on board!\n\n"
     message += "Best regards,\n"
-    message += f"{sender}"
+    message += f"Team {sender}"
     
     return message
 
@@ -99,51 +69,63 @@ def email_invite(email,invitation_message,subject):
             Message=invitation_message,
             Subject=subject
         )
-        print(f'Invitation sent to {email}')
+        # print(f'Invitation sents to {email}')
+        print(f'Invitations sent')
+        return 200
     except NoCredentialsError:
         print('Error: Failed to send invitation. No AWS credentials found.')
+        return 400
     except Exception as e:
-        print(f'Error sending invitation to {email}: {str(e)}')
+        # print(f'Error sending invitation to {email}: {str(e)}')
+        print(f'Error sending invitations')
+        return 400
 
-        return 200
-    
-def confirm_subscription(email, token):
+def get_team_members(team_name):
+    # Create DynamoDB client
+
+    # Replace 'YourTableName' with the name of your DynamoDB table
+    table_name = 'Teams'
+
+    table = dynamodb.Table(table_name)
+
     try:
-        response = sns.confirm_subscription(
-            TopicArn=topic_arn,
-            Token=token
+        # Query DynamoDB table to get all members of the specified team
+        response = table.get_item(
+            Key={
+                'teamName': team_name
+            }
         )
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            print(f'Subscription confirmed for {email}')
-            # Add the user to DynamoDB here
-            # Send the invitation
-        else:
-            print(f'Failed to confirm subscription for {email}')
+        
+        # Get the list of team members' email addresses from the response
+        team_members = response.get('Item', {}).get('team_members', [])
+        return team_members
+        
     except Exception as e:
-        print(f'Error confirming subscription for {email}: {str(e)}')
+        print(f'Error retrieving team members: {str(e)}')
+        return []
 
-def check_subscription_status():
-    # Get the list of subscribers for the topic
-    response = sns.list_subscriptions_by_topic(TopicArn=topic_arn)
-    subscriptions = response['Subscriptions']
+def send_individual_invites(team_name):
+    # Retrieve team members from DynamoDB
+    team_members = get_team_members(team_name)
 
-    # print(subscriptions)
-    # Iterate over the subscribers
-    for subscription in subscriptions:
-        subscription_arn = subscription['SubscriptionArn']
+    # Iterate over team members' email addresses
+    for email in team_members:
+        try:
+            # Check if the subscription is confirmed for each email
+            response = sns.get_subscription_attributes(
+                SubscriptionArn=f'{topic_arn}:{email}'
+            )
+            if response['Attributes']['ConfirmationWasAuthenticated'] == 'true':
+                # Generate invitation message
+                invitation_message = generate_invitation_message(email, team_name)
+                subject = 'Invitation to Join Team: ' + team_name
+                print(email)
+                # Send individual email invite to the confirmed subscriber
+                # email_invite(email, invitation_message, subject)
+        
+        except Exception as e:
+            print(f'Error checking subscription status or sending invitation to {email}: {str(e)}')
 
-        # Retrieve the subscription attributes
-        response = sns.get_subscription_attributes(SubscriptionArn=subscription_arn)
-        attributes = response['Attributes']
-
-        # Check the ConfirmationStatus attribute
-        confirmation_status = attributes['ConfirmationStatus']
-        if confirmation_status != 'Confirmed':
-            # If any subscriber is not confirmed, return False
-            return False
-
-    # If all subscribers are confirmed, return True
-    return True
 def send_invitations(teamName):
     try:
         email_list = request.json['emailList']
@@ -151,25 +133,15 @@ def send_invitations(teamName):
 
         # Parse the JSON and extract email addresses
         emails = [email for email in email_list]
-        for email in emails:
-            # subscribe_user(email, teamName)
-            # while True:
-            #     if check_subscription_status():
-            #         break
-            #     else:
-            #         # Add a small delay to avoid continuously looping
-            #         time.sleep(1)
-            #         continue
-
-            # # confirm_subscription(email, token)
-            # # add_user_to_team(email,teamName)
-            message = generate_invitation_message("email","<add_sender>")
-            subject = 'Invitation to Join Team: '+teamName
-            email_invite(email,message,subject)
+        # for email in emails:
+        subscribe_user(emails)
+        message = generate_invitation_message("",teamName)
+        subject = 'Invitation to Join Team: '+teamName
+        # email_invite(emails,message,subject)
+        send_individual_invites(teamName)
         return 200
     
     except KeyError:
         response = {'message': 'Invalid request payload'}
         # return jsonify(response), 400
         return 400
-

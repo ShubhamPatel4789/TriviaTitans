@@ -13,7 +13,7 @@ def add_headers(response):
 
 # Create DynamoDB client
 dynamodb = boto3.client('dynamodb')
-table_name = "Teams"
+
 # Create SNS client
 sns = boto3.client('sns')
 
@@ -31,7 +31,7 @@ def invite_users(teamName):
 
 
 # Subscribe the emails to the SNS topic
-def subscribe_user(team_name, emails):
+def subscribe_user(emails):
     for email in emails:
         try:
             response = sns.subscribe(
@@ -39,44 +39,9 @@ def subscribe_user(team_name, emails):
                 Protocol='email',
                 Endpoint=email
             )
-            create_confirmed_subscription(team_name, email)
             print(f'Subscribed {email} to the topic.')
         except Exception as e:
             print(f'Error subscribing {email}: {str(e)}')
-
-def create_confirmed_subscription(team_name, email):
-    response = dynamodb.get_item(
-        TableName=table_name,
-        Key={'teamName': {'S': team_name}}
-    )
-    
-    if 'Item' not in response:
-        # The item doesn't exist, so create it with the ConfirmedSubscription attribute and the first email
-        item = {
-            'teamName': {'S': team_name},
-            'ConfirmedSubscription': {'M': {email.replace('@', '_'): {'BOOL': False}}}
-        }
-        
-        dynamodb.put_item(TableName=table_name, Item=item)
-        print("Subscription added successfully for : ", email)
-        return True
-    
-    # The item exists, so update the ConfirmedSubscription attribute with the new email
-    item = response['Item']
-    confirmed_subscription = item.get('ConfirmedSubscription', {'M': {}})
-    confirmed_subscription['M'][email.replace('@', '_')] = {'BOOL': False}
-    
-    dynamodb.update_item(
-        TableName=table_name,
-        Key={'teamName': {'S': team_name}},
-        UpdateExpression='SET #attr = :val',
-        ExpressionAttributeNames={'#attr': 'ConfirmedSubscription'},
-        ExpressionAttributeValues={':val': confirmed_subscription}
-    )
-    
-    print("Subscription added successfully for : ", email)
-    return True
-
 
 def generate_invitation_message(member, sender):
     user_name = member.split('@')[0]
@@ -115,7 +80,7 @@ def send_invitations(teamName):
         # Parse the JSON and extract email addresses
         emails = [email for email in email_list]
         # for email in emails:
-        subscribe_user(teamName, emails)
+        subscribe_user(emails)
         message = generate_invitation_message("",teamName)
         subject = 'Invitation to Join Team: '+teamName
         # email_invite(emails,message,subject)
