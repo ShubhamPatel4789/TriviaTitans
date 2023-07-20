@@ -107,6 +107,88 @@ def email_invite(email,invitation_message,subject):
         print(f'Error sending invitations')
         return 400
 
+def check_subscriiption_status_to_send_invite():
+    response = dynamodb.scan(
+        TableName=table_name,
+        ProjectionExpression='teamName, ConfirmedSubscription'
+    )
+    
+    for item in response['Items']:
+        team_name = item['teamName']['S']
+        confirmed_subscription = item.get('ConfirmedSubscription', {}).get('M', {})
+        
+        for email, status in confirmed_subscription.items():
+            if status.get('BOOL', True):
+                send_invitation_email(team_name, email)
+
+def send_invitation_email(team_name, email):
+    # Your code here to send invitation emails to individual users
+    # For example, you can use the 'smtplib' library to send emails
+    
+    print(f"Sending invitation to {email} for team {team_name}")
+
+def check_subscription_status(teamName):
+    response = sns.list_subscriptions_by_topic(
+        TopicArn=topic_arn  # Replace 'your-sns-topic-arn' with your actual SNS topic ARN
+    )
+
+    confirmed_emails_sns = []
+
+    for subscription in response['Subscriptions']:
+        if subscription['SubscriptionArn'].startswith('arn:aws:sns:'):
+            email = subscription['Endpoint']
+            confirmed_emails_sns.append(email)
+            update_confirmation_in_table(teamName, email)
+
+    # update_confirmation_in_table(teamName, confirmed_emails_sns)
+    # Update DynamoDB table with confirmed subscriptions
+    # update_confirmed_subscriptions(confirmed_emails)
+
+    # Check if all emails in confirmed_emails have their subscription confirmed
+    # all_confirmed = all(get_subscription_status(email) for email in confirmed_emails)
+
+    # return all_confirmed
+    # if(response==True):
+    #     return True
+    # else:
+    #     return False
+
+def update_confirmation_in_table(teamName, email):
+    response = dynamodb.get_item(
+        TableName=table_name,
+        Key={'teamName': {'S': teamName}}
+    )
+    
+    item = response['Item']
+    confirmed_subscription = item.get('ConfirmedSubscription', {'M': {}})
+    confirmed_subscription['M'][email.replace('@', '_')] = {'BOOL': True}
+    
+    dynamodb.update_item(
+        TableName=table_name,
+        Key={'teamName': {'S': teamName}},
+        UpdateExpression='SET #attr = :val',
+        ExpressionAttributeNames={'#attr': 'ConfirmedSubscription'},
+        ExpressionAttributeValues={':val': confirmed_subscription}
+    )
+    # Print the updated item
+    print("Updated item:", response['Attributes'])
+
+    # return True
+
+
+def get_subscription_status(email):
+    response = dynamodb.get_item(
+        TableName=table_name,
+        Key={'teamName': {'S': 'Quiztikz'}},
+        ProjectionExpression=f'ConfirmedSubscription.{email.replace("@", "_")}'
+    )
+    if 'Item' in response:
+        confirmed_subscription = response['Item'].get('ConfirmedSubscription', {}).get(email.replace('@', '_'), {}).get('BOOL', False)
+        return confirmed_subscription
+    return False
+
+
+
 def send_invitations(teamName):
     try:
         email_list = request.json['emailList']
@@ -116,6 +198,9 @@ def send_invitations(teamName):
         emails = [email for email in email_list]
         # for email in emails:
         subscribe_user(teamName, emails)
+        while True:
+            if(check_subscription_status(teamName) == True):
+                break
         message = generate_invitation_message("",teamName)
         subject = 'Invitation to Join Team: '+teamName
         # email_invite(emails,message,subject)
@@ -126,8 +211,3 @@ def send_invitations(teamName):
         # return jsonify(response), 400
         return 400
 
-
-# when a 
-# now, i want to do 
-# 1. if an invite is alraedy sent, dont send 2nd time
-# 2. I want send_individual_invites() to be running constantly - so that it sends
