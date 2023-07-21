@@ -1,0 +1,61 @@
+service: update-score
+
+provider:
+  name: aws
+  runtime: python3.8
+  stage: dev
+  region: us-east-1
+
+resources:
+  Resources:
+    IndividualScoreTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: individual-score
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+          - AttributeName: gameId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+          - AttributeName: gameId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    TeamScoreTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: team-score
+        AttributeDefinitions:
+          - AttributeName: teamName
+            AttributeType: S
+          - AttributeName: gameId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: teamName
+            KeyType: HASH
+          - AttributeName: gameId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+functions:
+  updateScore:
+    handler: handler.update_score
+    events:
+      - http:
+          path: /updateScore
+          method: post
+          cors: true
+  fetchScore:
+    handler: fetchScoreHandler.lambda_handler
+    events:
+      - http:
+          path: /fetchScore
+          method: post
+          cors: true
