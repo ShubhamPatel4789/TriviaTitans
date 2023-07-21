@@ -73,9 +73,17 @@ const TriviaGamePage = () => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [questionTimer, setQuestionTimer] = useState(0);
   const [isTimerExpired, setIsTimerExpired] = useState(false);
+  const [teamScore, setTeamScore] = useState({});
+  const [individualScore, setIndividualScore] = useState({});
+  
+
+  const teamName = localStorage.getItem('teamName');
+  const emailId = localStorage.getItem('email');
+  const[isTeamGame,setIsTeamGame]=useState(teamName!==null);
+
 
   const gameData = {
-    gameId: '06228e90-019f-4250-b1d5-30be7a3bc4f4',
+    gameId: 'game12345',
     isGameEnded: true,
     isGameStarted: true,
     participantEmails: ['lp6126@gmail.com', 'user@example.com'],
@@ -162,6 +170,46 @@ const TriviaGamePage = () => {
     },
   };
 
+    // Function to update the score on the server
+const updateScoreOnServer = async (email, teamName,correctAnswer, answered, currentQuestion) => {
+      let body=""
+      if(isTeamGame){
+        body=JSON.stringify({
+          teamName,
+          gameId: gameData.gameId,
+          correctAnswer,
+          answered,
+          currentQuestion,
+        })
+      }
+      else{
+        body=JSON.stringify({
+          email,
+          gameId: gameData.gameId,
+          correctAnswer,
+          answered,
+          currentQuestion,
+        })
+        
+      }
+      try {
+        const response = await fetch('https://xzxo8tehe5.execute-api.us-east-1.amazonaws.com/dev/updateScore', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: body,
+        });
+  
+        if (!response.ok) {
+          // Handle API error if needed
+          console.error('Error updating score on server:', response.status, response.statusText);
+        }
+      } catch (error) {
+        // Handle any other errors that may occur during the fetch
+        console.error('Error updating score:', error);
+      }
+};
   useEffect(() => {
     if (!isAnswered && !showAnswer) {
       setQuestionTimer(gameData.trivia.timeFrame);
@@ -171,6 +219,8 @@ const TriviaGamePage = () => {
             clearInterval(timer);
             setIsTimerExpired(true);
             handleEvaluate();
+           // Call the updateScoreOnServer function with the necessary parameters
+          updateScoreOnServer(emailId,teamName, false, false, currentQuestion);
             
           }
           return prevTimer - 1;
@@ -179,6 +229,61 @@ const TriviaGamePage = () => {
       return () => clearInterval(timer);
     }
   }, [currentQuestion, isAnswered, showAnswer, gameData.trivia.timeFrame]);
+
+  useEffect(() => {
+
+        // Function to fetch scores from the API and set the state
+    const fetchScoresFromAPI = async () => {
+      try {
+        const response = await fetch('https://xzxo8tehe5.execute-api.us-east-1.amazonaws.com/dev/fetchScore', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ gameId: gameData.gameId }),
+        });
+
+        if (!response.ok) {
+          // Handle API error if needed
+          console.error('Error fetching scores from API:', response.status, response.statusText);
+          return;
+        }
+
+        const data = await response.json();
+        setTeamScore(data.teamScore || {});
+        setIndividualScore(data.individualScore || {});
+      } catch (error) {
+        // Handle any other errors that may occur during the fetch
+        console.error('Error fetching scores:', error);
+      }
+    };
+
+    // Call the fetchScoresFromAPI function to populate the scores
+    fetchScoresFromAPI();
+    // Create a WebSocket connection
+    const socketUrl = 'wss://5a0bu9svjd.execute-api.us-east-2.amazonaws.com/production?gameId=' + gameData.gameId;
+    const socket = new WebSocket(socketUrl);
+
+    // Event listener for receiving messages from the WebSocket
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.teamScore) {
+          setTeamScore(data.teamScore);
+        }
+        if (data.individualScore) {
+          setIndividualScore(data.individualScore);
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    // Clean up the WebSocket connection on component unmount
+    return () => {
+      socket.close();
+    };
+  }, [gameData.gameId]);
 
   const handleOptionSelect = (option) => {
     setSelectedOption(option);
@@ -207,6 +312,10 @@ const TriviaGamePage = () => {
     const isCorrectAnswer = option === currentQuestionData.correctAnswer;
     setIsCorrect(isCorrectAnswer);
     setShowAnswer(true);
+    if (option!=null){
+      // Call the updateScoreOnServer function with the necessary parameters
+      updateScoreOnServer(emailId, teamName,isCorrectAnswer, true, currentQuestion);
+    }
   };
 
   const currentQuestionData = gameData.trivia.questions[currentQuestion];
@@ -276,9 +385,18 @@ const TriviaGamePage = () => {
         </div>
         <div className={classes.scoresContainer}>
           <Typography variant="h6">Scores</Typography>
-          <Typography variant="body1">lp6126@gmail.com - 100</Typography>
-          <Typography variant="body1">user@example.com - 50</Typography>
-          {/* Replace with actual scores data */}
+          {/* Individual Scores */}
+          {Object.keys(individualScore).map((email) => (
+            <Typography key={email} variant="body1">
+              {email} - {individualScore[email]}
+            </Typography>
+          ))}
+          {/* Team Scores */}
+          {Object.keys(teamScore).map((team) => (
+            <Typography key={team} variant="body1">
+              {team} - {teamScore[team]}
+            </Typography>
+          ))}
         </div>
       </Box>
       <ChatComponent></ChatComponent>
