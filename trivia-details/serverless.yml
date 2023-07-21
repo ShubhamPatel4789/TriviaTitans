@@ -25,6 +25,12 @@ functions:
     events:
       - http: trivia/join-game
         method: POST
+  
+  joinGameAsTeam:
+    handler: join_game_as_team
+    events:
+      - http: trivia/join-game-as-team
+        method: POST
 
   activeGameDetails:
     handler: active_games

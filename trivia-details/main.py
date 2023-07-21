@@ -126,6 +126,78 @@ def join_game(request):
         # Log the error and return a 503 Service Unavailable error
         logging.error(str(e))
         return add_cors_headers(jsonify({'error': 'Service Unavailable'})), 503
+def join_game_as_team(request):
+    try:
+        team_name = request.json.get('teamName')
+        trivia_id = request.json.get('triviaId')
+
+        if not team_name or not trivia_id:
+            # Return a 400 Bad Request error if emailId or triviaId is missing
+            return add_cors_headers(jsonify({'error': 'Both teamName and triviaId parameters are required.'})), 400
+
+        # Check if the 'active-games' collection exists, and create it if not present
+
+
+        active_games_collection = db.collection('active-games')
+
+        # Generate a new game ID
+        game_id = str(uuid.uuid4())
+
+        # Calculate the start timestamp (10 minutes from the current time)
+        start_timestamp = datetime.now() + timedelta(minutes=10)
+
+        # Check if the game already exists
+        existing_games = active_games_collection.where('triviaId', '==', trivia_id).limit(1).stream()
+        if existing_games:
+            for game_doc in existing_games:
+                game_data = game_doc.to_dict()
+                participant_teams = game_data.get('participantTeams', [])
+                if team_name in participant_teams:
+                    return add_cors_headers(jsonify({'message': 'team already registered.', 'gameId': game_doc.id})), 200
+               
+                participant_teams.append(team_name)
+                game_data['participantTeams'] = participant_teams
+                active_games_collection.document(game_doc.id).update(game_data)
+
+                # Log the join game activity
+                logging.info(f"Added team {team_name} to existing game {game_doc.id}")
+
+                return add_cors_headers(jsonify({'message': 'Successfully joined the game.', 'gameId': game_doc.id})), 200
+
+        # Search for the trivia in the 'categoryTrivia' collection
+        category_trivia_collection = db.collection('trivia')
+
+        query = category_trivia_collection.where('triviaId', '==', trivia_id).limit(1).stream()
+        if query:
+            for trivia_doc in query:
+                trivia_data = trivia_doc.to_dict()
+                category_name = trivia_data.get('categoryName')
+
+                # Create a new game document in the active-games collection
+                game_data = {
+                    'gameId': game_id,
+                    'triviaId': trivia_id,
+                    'timeFrames':trivia_data.get('timeFrames') ,  # Set the appropriate value for time frames
+                    'startTimestamp': format_timestamp(start_timestamp),
+                    'isStarted': False,
+                    'participantTeams': [team_name],
+
+                }
+
+                active_games_collection.document(game_id).set(game_data)
+
+                # Log the join game activity
+                logging.info(f"Created new game {game_id} with team {team_name}")
+
+                return add_cors_headers(jsonify({'message': 'Successfully joined the game.', 'gameId': game_id})), 200
+        else:
+            # Return a 404 Not Found error if the trivia with the provided triviaId is not found
+            return add_cors_headers(jsonify({'error': 'Trivia not found.'})), 404
+
+    except Exception as e:
+        # Log the error and return a 503 Service Unavailable error
+        logging.error(str(e))
+        return add_cors_headers(jsonify({'error': 'Service Unavailable'})), 503
 
 def active_games(request):
     try:
