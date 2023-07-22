@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const TriviaManagementPage = () => {
-    const classes = useStyles();
+    const ses = useStyles();
     const [categories, setCategories] = useState([]);
     const [category, setCategory] = useState(null);
     const [difficulty, setDifficulty] = useState(null);
@@ -44,7 +44,7 @@ const TriviaManagementPage = () => {
 
     useEffect(() => {
         // Fetch categories from API
-        axios.get('https://us-east1-serverless-389521.cloudfunctions.net/getAllCategories')
+        axios.get('https://us-east1-sdp17-392601.cloudfunctions.net/getAllCategories')
             .then((response) => {
                 const categoryOptions = response.data.categories.map((category) => ({
                     value: category,
@@ -90,7 +90,7 @@ const TriviaManagementPage = () => {
             shortDescription: description,
         };
 
-        axios.post('https://us-east1-serverless-389521.cloudfunctions.net/createtrivia', newGame, {
+        axios.post('https://us-east1-sdp17-392601.cloudfunctions.net/createtrivia', newGame, {
             headers: {
                 'Content-Type': 'application/json',
             },
