@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
-import './register.css';
 import GoogleLogin from 'react-google-login';
 import FacebookLogin from 'react-facebook-login';
-import { Auth } from 'aws-amplify';
+import firebase from 'firebase/app';
+import 'firebase/firestore';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
+import './register.css';
+import 'firebase/auth';
+import 'firebase/firestore';
+import firebaseConfig from '../../firebaseConfig';
 
-const UserRegister = () => {
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+
+const db = firebase.firestore();
+
+const UserRegistration = () => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
+
+    const [users, loading, error] = useCollectionData(
+        db.collection('users').where('email', '==', email),
+        { idField: 'id' }
+    );
 
     const handleRegistration = async (event) => {
         event.preventDefault();
@@ -20,16 +37,18 @@ const UserRegister = () => {
         }
 
         try {
-            // Sign up the user with Amplify Auth
-            const { user } = await Auth.signUp({
-                username,
-                password,
-                attributes: {
-                    email,
-                },
+            // Sign up the user with email/password
+            const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+
+            // Add the user's email to their Firestore document
+            const userRef = db.collection('users').doc(userCredential.user.uid);
+            userRef.set({
+                username: username,
+                email: email,
             });
 
-            console.log('User registered successfully:', user);
+            // Add Firebase Authentication code here
+            console.log('User registered:', userCredential.user);
         } catch (error) {
             console.log('Error registering user:', error);
         }
@@ -40,23 +59,34 @@ const UserRegister = () => {
         return passwordRegex.test(password);
     };
 
-    const handleGoogleLoginSuccess = (response) => {
-        // Send the Google access token to your backend for user registration or login
-        console.log('Google login success:', response);
+    const handleGoogleLoginSuccess = async (response) => {
+        // Sign in the user with Google
+        const credential = firebase.auth.GoogleAuthProvider.credential(response.tokenId);
+        const userCredential = await firebase.auth().signInWithCredential(credential);
+
+        // Add the user's email to their Firestore document
+        const userRef = db.collection('users').doc(userCredential.user.uid);
+        userRef.set({
+            email: userCredential.user.email,
+        });
     };
 
-    // Function to handle Google login failure
     const handleGoogleLoginFailure = (error) => {
         console.log('Google login failure:', error);
     };
 
-    // Function to handle Facebook login success
-    const handleFacebookLoginSuccess = (response) => {
-        // Send the Facebook access token to your backend for user registration or login
-        console.log('Facebook login success:', response);
+    const handleFacebookLoginSuccess = async (response) => {
+        // Sign in the user with Facebook
+        const credential = firebase.auth.FacebookAuthProvider.credential(response.accessToken);
+        const userCredential = await firebase.auth().signInWithCredential(credential);
+
+        // Add the user's email to their Firestore document
+        const userRef = db.collection('users').doc(userCredential.user.uid);
+        userRef.set({
+            email: userCredential.user.email,
+        });
     };
 
-    // Function to handle Facebook login failure
     const handleFacebookLoginFailure = (error) => {
         console.log('Facebook login failure:', error);
     };
@@ -65,40 +95,52 @@ const UserRegister = () => {
         <div className="App">
             <h2>User Registration</h2>
             <form onSubmit={handleRegistration}>
-                {/* Input fields */}
+                {/* Username field */}
+                <label htmlFor="username-input">Username</label>
                 <input
                     type="text"
                     placeholder="Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
+                    id="username-input"
                 />
+
+                {/* Email field */}
+                <label htmlFor="email-input">Email</label>
                 <input
                     type="email"
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    id="email-input"
                 />
+
+                {/* Password field */}
+                <label htmlFor="password-input">Password</label>
                 <input
                     type="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    id="password-input"
                 />
                 {passwordError && <div className="error">{passwordError}</div>}
-                <button type="submit">Register</button>
+
+                {/* Submit button */}
+                <button type="submit" id="register-button">Register</button>
 
                 {/* Google Login */}
                 <div className="socialButtons">
                     <GoogleLogin
-                        clientId="YOUR_GOOGLE_CLIENT_ID"
+                        clientId="171588375686-dbg2fdc4gkt3t0vevf85gsdmmg7n0f2r.apps.googleusercontent.com"
                         buttonText="Register with Google"
                         onSuccess={handleGoogleLoginSuccess}
                         onFailure={handleGoogleLoginFailure}
                         cookiePolicy={'single_host_origin'}
-                        className="socialButton google" // Apply the socialButton and google classes
+                        className="google-login-button"
                     />
 
                     {/* Facebook Login */}
@@ -107,14 +149,14 @@ const UserRegister = () => {
                         fields="name,email,picture"
                         callback={handleFacebookLoginSuccess}
                         onFailure={handleFacebookLoginFailure}
-                        cssClass="socialButton facebook" // Apply the socialButton and facebook classes
+                        cssClass="facebook-login-button"
                         textButton="Register with Facebook"
                         icon="fa-facebook"
                     />
                 </div>
-            </form>
-        </div>
+            </form >
+        </div >
     );
 };
 
-export default UserRegister;
+export default UserRegistration;

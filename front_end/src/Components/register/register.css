@@ -96,4 +96,39 @@
     height: 18px;
     margin-right: 10px;
   }
+  .facebook-login-button {
+    display: inline-block;
+    background-color: #3b5998;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
   
+  .facebook-login-button .fa-facebook {
+    margin-right: 10px;
+  }
+  .google-login-button {
+    display: inline-block;
+    background-color: #fff;
+    color: #757575;
+    border: 1px solid #757575;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .google-login-button .fa-google {
+    margin-right: 10px;
+  }

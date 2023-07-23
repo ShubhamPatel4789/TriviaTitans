@@ -1,9 +1,17 @@
 import './App.css';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-
 import LandingPage from './Components/LandingPage/LandingPage';
 import InviteUsers from './Components/InviteUsersPage/InviteUsersPage'
 import UserRegister from './Components/register/userRegister';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/firestore';
+import firebaseConfig from './firebaseConfig';
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
 function App() {
   return (
     <div>

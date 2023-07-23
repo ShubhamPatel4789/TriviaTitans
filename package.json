@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "aws-amplify": "^5.3.5",
-    "react-facebook-login": "^4.1.1",
-    "react-facebook-sdk": "^1.1.1",
-    "react-google-login": "^5.2.2"
-  }
-}
