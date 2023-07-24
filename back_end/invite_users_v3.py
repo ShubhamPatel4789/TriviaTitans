@@ -149,29 +149,49 @@ def update_confirmation_in_table(teamName, email):
     # return True
 
 
-def send_to_sqs(teamName, emails):
+# def send_to_sqs(teamName, emails):
+#     # Create SQS client
+#     sqs = boto3.client('sqs')
+
+#     # Replace 'your-queue-url' with the actual URL of your SQS queue
+#     queue_url = 'https://sqs.us-east-1.amazonaws.com/000966082997/InvitationQueue'
+
+#     for email in emails:
+#         # Create the JSON message body
+#         message_body = {
+#             'teamName': teamName,
+#             'email': email
+#         }
+
+#         # Send the message to the SQS queue
+#         response = sqs.send_message(
+#             QueueUrl=queue_url,
+#             MessageBody=json.dumps(message_body)
+#         )
+
+#         # Print the response if needed (optional)
+#         print(f"Message sent for {email}: {response['MessageId']}")
+
+def send_to_sqs(teamName):
     # Create SQS client
     sqs = boto3.client('sqs')
 
     # Replace 'your-queue-url' with the actual URL of your SQS queue
     queue_url = 'https://sqs.us-east-1.amazonaws.com/000966082997/InvitationQueue'
 
-    for email in emails:
-        # Create the JSON message body
-        message_body = {
-            'teamName': teamName,
-            'email': email
-        }
+    # Create the JSON message body
+    message_body = {
+        'teamName': teamName
+    }
 
-        # Send the message to the SQS queue
-        response = sqs.send_message(
-            QueueUrl=queue_url,
-            MessageBody=json.dumps(message_body)
-        )
+    # Send the message to the SQS queue
+    response = sqs.send_message(
+        QueueUrl=queue_url,
+        MessageBody=json.dumps(message_body)
+    )
 
-        # Print the response if needed (optional)
-        print(f"Message sent for {email}: {response['MessageId']}")
-
+    # Print the response if needed (optional)
+    print(f"Message sent for {teamName}: {response['MessageId']}")
 
 def send_invitations(teamName):
     try:
@@ -185,7 +205,7 @@ def send_invitations(teamName):
         # send_verification_email(emails)
 
         # Send messages to SQS
-        send_to_sqs(teamName, emails)
+        send_to_sqs(teamName)
         # while True:
         #     if(check_subscription_status(teamName) == True):
         #         break
