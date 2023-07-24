@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, Blueprint
 import openai
-from flask_cors import CORS, cross_origin
+# from flask_cors import CORS, cross_origin
 import boto3
 
 app = Flask(__name__)

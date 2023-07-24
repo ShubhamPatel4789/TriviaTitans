@@ -1,12 +1,17 @@
+""" 
+vikramvenkat2408@gmail.com
+vikramvenkatapathi@gmail.com
+"""
+
 from flask import Flask, jsonify, request, Blueprint
 import boto3
 from botocore.exceptions import NoCredentialsError
-
+import json
 app = Flask(__name__)
 
-invite_users_app_v2 = Blueprint('invite_users_app_v2', __name__)
+invite_users_app_v3 = Blueprint('invite_users_app_v3', __name__)
 
-@invite_users_app_v2.after_request
+@invite_users_app_v3.after_request
 def add_headers(response):
     response.headers.add("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers")
     return response
@@ -18,7 +23,7 @@ table_name = "Teams"
 sns = boto3.client('sns')
 
 topic_arn = "arn:aws:sns:us-east-1:000966082997:TeamInvitationV3"
-@invite_users_app_v2.route("/invite-users/<teamName>",methods=["POST"])
+@invite_users_app_v3.route("/invite-users/<teamName>",methods=["POST"])
 def invite_users(teamName):
     
     response = send_invitations(teamName)
@@ -107,25 +112,7 @@ def email_invite(email,invitation_message,subject):
         print(f'Error sending invitations')
         return 400
 
-def check_subscriiption_status_to_send_invite():
-    response = dynamodb.scan(
-        TableName=table_name,
-        ProjectionExpression='teamName, ConfirmedSubscription'
-    )
-    
-    for item in response['Items']:
-        team_name = item['teamName']['S']
-        confirmed_subscription = item.get('ConfirmedSubscription', {}).get('M', {})
-        
-        for email, status in confirmed_subscription.items():
-            if status.get('BOOL', True):
-                send_invitation_email(team_name, email)
 
-def send_invitation_email(team_name, email):
-    # Your code here to send invitation emails to individual users
-    # For example, you can use the 'smtplib' library to send emails
-    
-    print(f"Sending invitation to {email} for team {team_name}")
 
 def check_subscription_status(teamName):
     response = sns.list_subscriptions_by_topic(
@@ -140,18 +127,7 @@ def check_subscription_status(teamName):
             confirmed_emails_sns.append(email)
             update_confirmation_in_table(teamName, email)
 
-    # update_confirmation_in_table(teamName, confirmed_emails_sns)
-    # Update DynamoDB table with confirmed subscriptions
-    # update_confirmed_subscriptions(confirmed_emails)
 
-    # Check if all emails in confirmed_emails have their subscription confirmed
-    # all_confirmed = all(get_subscription_status(email) for email in confirmed_emails)
-
-    # return all_confirmed
-    # if(response==True):
-    #     return True
-    # else:
-    #     return False
 
 def update_confirmation_in_table(teamName, email):
     response = dynamodb.get_item(
@@ -195,6 +171,28 @@ def get_subscription_status(email):
     return False
 
 
+def send_to_sqs(teamName, emails):
+    # Create SQS client
+    sqs = boto3.client('sqs')
+
+    # Replace 'your-queue-url' with the actual URL of your SQS queue
+    queue_url = 'https://sqs.us-east-1.amazonaws.com/000966082997/InvitationQueue'
+
+    for email in emails:
+        # Create the JSON message body
+        message_body = {
+            'teamName': teamName,
+            'email': email
+        }
+
+        # Send the message to the SQS queue
+        response = sqs.send_message(
+            QueueUrl=queue_url,
+            MessageBody=json.dumps(message_body)
+        )
+
+        # Print the response if needed (optional)
+        print(f"Message sent for {email}: {response['MessageId']}")
 
 def send_invitations(teamName):
     try:
@@ -205,11 +203,14 @@ def send_invitations(teamName):
         emails = [email for email in email_list]
         # for email in emails:
         subscribe_user(teamName, emails)
-        while True:
-            if(check_subscription_status(teamName) == True):
-                break
-        message = generate_invitation_message("",teamName)
-        subject = 'Invitation to Join Team: '+teamName
+
+        # Send messages to SQS
+        send_to_sqs(teamName, emails)
+        # while True:
+        #     if(check_subscription_status(teamName) == True):
+        #         break
+        # message = generate_invitation_message("",teamName)
+        # subject = 'Invitation to Join Team: '+teamName
         # email_invite(emails,message,subject)
         return 200
     
