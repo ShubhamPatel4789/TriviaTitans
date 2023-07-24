@@ -36,18 +36,51 @@ def invite_users(teamName):
 
 
 # Subscribe the emails to the SNS topic
+# def subscribe_user(team_name, emails):
+#     for email in emails:
+#         try:
+#             response = sns.subscribe(
+#                 TopicArn=topic_arn,
+#                 Protocol='email',
+#                 Endpoint=email
+#             )
+#             create_confirmed_subscription(team_name, email)
+#             print(f'Subscribed {email} to the topic.')
+#         except Exception as e:
+#             print(f'Error subscribing {email}: {str(e)}')
+
 def subscribe_user(team_name, emails):
     for email in emails:
         try:
-            response = sns.subscribe(
-                TopicArn=topic_arn,
-                Protocol='email',
-                Endpoint=email
-            )
+            # Check if the topic with the name "<team_name>_SNS" already exists
+            topic_name = f"Team_{team_name}_SNS"
+            existing_topics = sns.list_topics()['Topics']
+            existing_topic_arn = next((topic['TopicArn'] for topic in existing_topics if topic_name in topic['TopicArn']), None)
+
+            if existing_topic_arn:
+                # If the topic already exists, subscribe the email to the existing topic
+                response = sns.subscribe(
+                    TopicArn=existing_topic_arn,
+                    Protocol='email',
+                    Endpoint=email
+                )
+                print(f"Subscribed {email} to the existing topic: {existing_topic_arn}")
+            else:
+                # If the topic does not exist, create a new topic and subscribe the email to it
+                response = sns.create_topic(Name=topic_name)
+                new_topic_arn = response['TopicArn']
+                response = sns.subscribe(
+                    TopicArn=new_topic_arn,
+                    Protocol='email',
+                    Endpoint=email
+                )
+                print(f"Subscribed {email} to the new topic: {new_topic_arn}")
+
+            # Update the confirmed subscription in the DynamoDB table
             create_confirmed_subscription(team_name, email)
-            print(f'Subscribed {email} to the topic.')
         except Exception as e:
-            print(f'Error subscribing {email}: {str(e)}')
+            print(f"Error subscribing {email}: {str(e)}")
+
 
 def create_confirmed_subscription(team_name, email):
     response = dynamodb.get_item(
@@ -194,6 +227,14 @@ def send_to_sqs(teamName, emails):
         # Print the response if needed (optional)
         print(f"Message sent for {email}: {response['MessageId']}")
 
+def send_verification_email(email_addresses):
+    ses = boto3.client('ses', region_name='us-east-1')
+    
+    for email_address in email_addresses:
+        response = ses.verify_email_identity(
+            EmailAddress=email_address
+        )
+        print(f"Verification email sent to {email_address}.")
 def send_invitations(teamName):
     try:
         email_list = request.json['emailList']
@@ -203,6 +244,7 @@ def send_invitations(teamName):
         emails = [email for email in email_list]
         # for email in emails:
         subscribe_user(teamName, emails)
+        # send_verification_email(emails)
 
         # Send messages to SQS
         send_to_sqs(teamName, emails)
