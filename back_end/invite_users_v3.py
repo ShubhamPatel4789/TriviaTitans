@@ -116,49 +116,6 @@ def create_confirmed_subscription(team_name, email):
     return True
 
 
-def generate_invitation_message(member, sender):
-    user_name = member.split('@')[0]
-    message = f"Dear {user_name},\n\n"
-    message += "We are excited to invite you to join our team! We believe your skills and expertise will greatly contribute to our success.\n\n"
-    # message += "To accept the invitation and become a member of our team, please click the 'Confirm Subscription' link.\n\n"
-    message += "We look forward to having you on board!\n\n"
-    message += "Best regards,\n"
-    message += f"Team {sender}"
-    
-    return message
-
-def email_invite(email,invitation_message,subject):
-    try:
-        sns.publish(
-            TopicArn=topic_arn,
-            Message=invitation_message,
-            Subject=subject
-        )
-        # print(f'Invitation sents to {email}')
-        print(f'Invitations sent')
-        return 200
-    except NoCredentialsError:
-        print('Error: Failed to send invitation. No AWS credentials found.')
-        return 400
-    except Exception as e:
-        # print(f'Error sending invitation to {email}: {str(e)}')
-        print(f'Error sending invitations')
-        return 400
-
-
-
-def check_subscription_status(teamName):
-    response = sns.list_subscriptions_by_topic(
-        TopicArn=topic_arn  # Replace 'your-sns-topic-arn' with your actual SNS topic ARN
-    )
-
-    confirmed_emails_sns = []
-
-    for subscription in response['Subscriptions']:
-        if subscription['SubscriptionArn'].startswith('arn:aws:sns:'):
-            email = subscription['Endpoint']
-            confirmed_emails_sns.append(email)
-            update_confirmation_in_table(teamName, email)
 
 
 
@@ -192,18 +149,6 @@ def update_confirmation_in_table(teamName, email):
     # return True
 
 
-def get_subscription_status(email):
-    response = dynamodb.get_item(
-        TableName=table_name,
-        Key={'teamName': {'S': 'Quiztikz'}},
-        ProjectionExpression=f'ConfirmedSubscription.{email.replace("@", "_")}'
-    )
-    if 'Item' in response:
-        confirmed_subscription = response['Item'].get('ConfirmedSubscription', {}).get(email.replace('@', '_'), {}).get('BOOL', False)
-        return confirmed_subscription
-    return False
-
-
 def send_to_sqs(teamName, emails):
     # Create SQS client
     sqs = boto3.client('sqs')
@@ -227,14 +172,7 @@ def send_to_sqs(teamName, emails):
         # Print the response if needed (optional)
         print(f"Message sent for {email}: {response['MessageId']}")
 
-def send_verification_email(email_addresses):
-    ses = boto3.client('ses', region_name='us-east-1')
-    
-    for email_address in email_addresses:
-        response = ses.verify_email_identity(
-            EmailAddress=email_address
-        )
-        print(f"Verification email sent to {email_address}.")
+
 def send_invitations(teamName):
     try:
         email_list = request.json['emailList']

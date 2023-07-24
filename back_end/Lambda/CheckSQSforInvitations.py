@@ -63,29 +63,6 @@ def lambda_handler(event, context):
 
 
         
-def list_subscriptions(response, email):
-    # print("inside")
-    target_arn = None
-    for subscription in response['Subscriptions']:
-        if subscription['Protocol'] == 'email' and subscription['Endpoint'] == email:
-            target_arn = subscription['SubscriptionArn']
-            break
-
-    # Publish a message directly to the specific email address  
-    if target_arn!=None:
-        print(target_arn,">>>")
-        message = 'This is a direct message to a specific email address.'
-        subject = 'Direct Message from SNS'
-        response = sns.publish(
-            TargetArn=target_arn,
-            Message=message,
-            Subject=subject
-        )
-        print(f'Message published to {email_address} with MessageId: {response["MessageId"]}')
-    else:
-        print(f'{email_address} is not subscribed to the SNS topic.')
-        
-        
 def generate_invitation_message(email, team_name):
     user_name = email.split('@')[0]
     message = f"Dear {user_name},\n\n"
@@ -96,31 +73,3 @@ def generate_invitation_message(email, team_name):
     message += f"Team {team_name}"
 
     return message
-
-# def send_email_ses(to_email, subject, body):
-#     ses = boto3.client('ses', region_name='us-east-1')
-
-#     try:
-#         response = ses.send_email(
-#             Source="vikramvenkatapathi@gmail.com",
-#             Destination={
-#                 'ToAddresses': [to_email]
-#             },
-#             Message={
-#                 'Subject': {
-#                     'Data': subject
-#                 },
-#                 'Body': {
-#                     'Text': {
-#                         'Data': body
-#                     }
-#                 }
-#             }
-#         )
-#         print(f"Email sent to: {to_email}")
-#         return True
-#     except Exception as e:
-#         print(f"Error sending email: {str(e)}")
-#         return False
-
-
