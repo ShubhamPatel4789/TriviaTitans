@@ -1,4 +1,5 @@
 import boto3
+import json
 
 def lambda_handler(event, context):
     # Create SNS and DynamoDB clients
@@ -50,8 +51,22 @@ def lambda_handler(event, context):
                     ExpressionAttributeNames={'#attr': 'ConfirmedSubscription'},
                     ExpressionAttributeValues={':val': confirmed_subscription}
                 )
+                invoke_add_team_members_lambda(team_name, email)
 
     return {
         'statusCode': 200,
         'body': 'DynamoDB table updated successfully.'
     }
+
+def invoke_add_team_members_lambda(team_name, email):
+    lambda_client = boto3.client('lambda')
+    payload = {
+        'team_name': team_name,
+        'email': email
+    }
+    response = lambda_client.invoke(
+        FunctionName='AddTeamMembersToDB',
+        InvocationType='Event',
+        Payload=json.dumps(payload)
+    )
+    print(f"Invoked AddTeamMembersToDB lambda for {email}. Response: {response}")
