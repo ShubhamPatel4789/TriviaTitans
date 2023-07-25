@@ -70,7 +70,7 @@ const LandingPage = () => {
 
   return (
     <div>
-      <h1>Team Management</h1>
+      <h1 align="center">Team Management</h1>
       <button onClick={handleGenerateName}>Generate Team Name</button>
       <p>(max 3 tries)</p>
       {generatedName && <p>Generated Name: {generatedName}</p>}

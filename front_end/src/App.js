@@ -5,6 +5,7 @@ import LandingPage from './Components/LandingPage/LandingPage';
 import InviteUsers from './Components/InviteUsersPage/InviteUsersPage'
 import TeamStatistics from './Components/TeamStatistics/TeamStatistics';
 import HomePage from './Components/HomePage/HomePage';
+import Administration from './Components/Administration/Administration';
 function App() {
   
   return (
@@ -15,6 +16,9 @@ function App() {
           <Route path="/landing-page/" element={<LandingPage />} />
           <Route path="/invite-users/:teamName" element={<InviteUsers />} />
           <Route path="/teamStatistics/" element={<TeamStatistics />} />
+          
+          <Route path="/Administration/" element={<Administration />} />
+
         </Routes>
       </Router>
     </div>

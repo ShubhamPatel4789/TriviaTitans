@@ -1,11 +1,11 @@
 // HomePage.js
 import React from 'react';
 import { Link } from 'react-router-dom';
-
+import './HomePage.css'
 const HomePage = () => {
   return (
     <div>
-      <h1>Team Management</h1>
+      <h1 align="center">Team Management</h1>
       <div className="navigation-buttons">
         <Link to="/landing-page">
           <button>Generate a Team </button>

@@ -22,7 +22,7 @@ const TeamStatistics = ({ teamName, gamesPlayed, wins, losses, totalPoints, fetc
 
   return (
     <div>
-      <h1>Team Management</h1>
+      <h1 align="center">Team Management</h1>
     
     <div className="team-statistics">
       
