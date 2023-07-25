@@ -14,7 +14,7 @@ def lambda_handler(event, context):
             MaxNumberOfMessages=1,
             WaitTimeSeconds=20  # Wait for 20 seconds to receive messages
         )
-    
+        
         messages = response.get('Messages', [])
         if not messages:
             print("No messages found in the queue.")
@@ -22,11 +22,13 @@ def lambda_handler(event, context):
                 'statusCode': 200,
                 'body': json.dumps('No messages found in the queue.')
             }
-    
+       
         message = messages[0]  # Since only one message is expected
     
         try:
-            body = json.loads(message['Body'])
+            print("<<", message)
+            body = json.loads(message['Body']) 
+            print(body)
             team_name = body.get('teamName')
             topic_arn = get_team_name_topic_ARN(team_name)
             print(f"Received message - Team Name: {team_name}")
@@ -43,23 +45,6 @@ def lambda_handler(event, context):
                     Subject=f'Invitation to Join Team: {team_name}'
                 )
                 print(f"Invitation sent to {team_name}")    
-            #     for email, status in confirmed_subscription.items():
-            #         if not status:
-            #         #     # Send email invitation for members with status False
-            #             invitation_message = generate_invitation_message(" ", team_name)
-            #             sns.publish(
-            #                 TopicArn=topic_arn,
-            #                 Message=invitation_message,
-            #                 Subject=f'Invitation to Join Team: {team_name}'
-            #             )
-            #             print(f"Invitation sent to {email}")              
-                # invitation_message = generate_invitation_message(" ", team_name)
-                # sns.publish(
-                #     TopicArn=topic_arn,
-                #     Message=invitation_message,
-                #     Subject=f'Invitation to Join Team: {team_name}'
-                # )
-                # print(f"Invitation sent to {team_name}")                
     
             # # Delete the processed message from the queue
             # receipt_handle = message['ReceiptHandle']
@@ -103,16 +88,6 @@ def get_confirmed_subscription_status(team_name):
     
     return all_confirmed
 
-def get_confirmed_subscription(team_name):
-    response = dynamodb.get_item(
-        TableName='Teams',
-        Key={'teamName': {'S': team_name}},
-        ProjectionExpression='ConfirmedSubscription'
-    )
-
-    item = response.get('Item', {})
-    confirmed_subscription = item.get('ConfirmedSubscription', {})
-    return confirmed_subscription
 
 
 def generate_invitation_message(email, team_name):
@@ -123,5 +98,6 @@ def generate_invitation_message(email, team_name):
     message += "We look forward to having you on board!\n\n"
     message += "Best regards,\n"
     message += f"Team {team_name}"
+    message += "\n\nNOTE: If you want to decline this iinvitation, Please click the un-subscribe link below.\n"
 
     return message
