@@ -17,9 +17,13 @@ def lambda_handler(event, context):
     item = response.get('Item', {})
     current_members = item.get('CurrentMembers', {'L': []})
     
+    # Check if the email is already present in the list
     if 'L' in current_members:
-        # 'CurrentMembers' key is already present, so append the email to the list
-        current_members['L'].append({'S': email})
+        emails_list = [item['S'] for item in current_members['L']]
+        if email not in emails_list:
+            # Email is not present, append it to the list
+            current_members['L'].append({'S': email})
+    
     else:
         # 'CurrentMembers' key is not present, create a new one with the email as the first element of the list
         current_members = {'L': [{'S': email}]}
@@ -37,4 +41,3 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': 'User added to the "Current Members" attribute.'
     }
-
