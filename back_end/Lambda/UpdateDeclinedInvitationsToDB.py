@@ -26,27 +26,37 @@ def lambda_handler(event, context):
         declined_subscription['L'].append({'S': email})
 
         # Update the DynamoDB item with the updated 'DeclinedSubscription' list
-        response = dynamodb.update_item(
+        dynamodb.update_item(
             TableName='Teams',
             Key={'teamName': {'S': team_name}},
             UpdateExpression='SET DeclinedSubscription = :val',
             ExpressionAttributeValues={':val': declined_subscription}
         )
 
-    # Remove the email from the 'CurrentMembers' attribute
+    # Check if the 'CurrentMembers' key is already present in the item
     if 'CurrentMembers' in item:
         current_members = item['CurrentMembers']
-        if email in current_members:
-            current_members.remove(email)
+        if 'L' in current_members:
+            email_list = current_members['L']
+            print("before",email_list)
+            email_list.remove({'S': email})
+            print("after",email_list)
+            
             # Update the DynamoDB item with the updated 'CurrentMembers' list
-            dynamodb.update_item(
+            response = dynamodb.update_item(
                 TableName='Teams',
                 Key={'teamName': {'S': team_name}},
-                UpdateExpression='SET CurrentMembers = :current_members',
+                UpdateExpression='SET #current_members = :current_members',
+                ExpressionAttributeNames={'#current_members': 'CurrentMembers'},
                 ExpressionAttributeValues={':current_members': current_members}
             )
 
+            return {
+                'statusCode': 200,
+                'body': f'User {email} declined the invitation for Team {team_name}.'
+            }
+
     return {
-        'statusCode': 200,
-        'body': f'User {email} declined the invitation for Team {team_name}.'
+        'statusCode': 400,
+        'body': f'User {email} not found in CurrentMembers for Team {team_name}.'
     }
