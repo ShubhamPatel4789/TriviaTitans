@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useNavigate  } from 'react-router-dom';
 
 const InviteUsersPage = () => {
   const { teamName } = useParams();
-
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [emailList, setEmailList] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
@@ -44,6 +45,7 @@ const InviteUsersPage = () => {
         console.log('Invitations sent:', emailList);
         alert("Invitations sent");
         setEmailList([]);
+        navigate('/administration')
       } else {
         console.error('Error:', response.status);
       }
