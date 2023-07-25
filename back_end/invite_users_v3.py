@@ -35,19 +35,6 @@ def invite_users(teamName):
         return jsonify(msg), 400
 
 
-# Subscribe the emails to the SNS topic
-# def subscribe_user(team_name, emails):
-#     for email in emails:
-#         try:
-#             response = sns.subscribe(
-#                 TopicArn=topic_arn,
-#                 Protocol='email',
-#                 Endpoint=email
-#             )
-#             create_confirmed_subscription(team_name, email)
-#             print(f'Subscribed {email} to the topic.')
-#         except Exception as e:
-#             print(f'Error subscribing {email}: {str(e)}')
 
 def subscribe_user(team_name, emails):
     for email in emails:
@@ -116,62 +103,6 @@ def create_confirmed_subscription(team_name, email):
     return True
 
 
-
-
-
-def update_confirmation_in_table(teamName, email):
-    response = dynamodb.get_item(
-        TableName=table_name,
-        Key={'teamName': {'S': teamName}}
-    )
-    
-    item = response['Item']
-    confirmed_subscription = item.get('ConfirmedSubscription', {'M': {}})
-
-    email_key = email.replace('@', '_')
-    if email_key in confirmed_subscription['M']:
-        # Update the boolean value to True
-        confirmed_subscription['M'][email_key]['BOOL'] = True
-    else:
-        # If the email is not present, add it with a True value
-        confirmed_subscription['M'][email_key] = {'BOOL': True}
-
-    dynamodb.update_item(
-        TableName=table_name,
-        Key={'teamName': {'S': teamName}},
-        UpdateExpression='SET #attr = :val',
-        ExpressionAttributeNames={'#attr': 'ConfirmedSubscription'},
-        ExpressionAttributeValues={':val': confirmed_subscription}
-    )
-
-    # Print the updated item
-    print("Updated item:", response['Attributes'])
-    # return True
-
-
-# def send_to_sqs(teamName, emails):
-#     # Create SQS client
-#     sqs = boto3.client('sqs')
-
-#     # Replace 'your-queue-url' with the actual URL of your SQS queue
-#     queue_url = 'https://sqs.us-east-1.amazonaws.com/000966082997/InvitationQueue'
-
-#     for email in emails:
-#         # Create the JSON message body
-#         message_body = {
-#             'teamName': teamName,
-#             'email': email
-#         }
-
-#         # Send the message to the SQS queue
-#         response = sqs.send_message(
-#             QueueUrl=queue_url,
-#             MessageBody=json.dumps(message_body)
-#         )
-
-#         # Print the response if needed (optional)
-#         print(f"Message sent for {email}: {response['MessageId']}")
-
 def send_to_sqs(teamName):
     # Create SQS client
     sqs = boto3.client('sqs')
@@ -206,12 +137,7 @@ def send_invitations(teamName):
 
         # Send messages to SQS
         send_to_sqs(teamName)
-        # while True:
-        #     if(check_subscription_status(teamName) == True):
-        #         break
-        # message = generate_invitation_message("",teamName)
-        # subject = 'Invitation to Join Team: '+teamName
-        # email_invite(emails,message,subject)
+
         return 200
     
     except KeyError:

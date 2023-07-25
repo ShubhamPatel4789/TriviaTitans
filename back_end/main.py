@@ -5,8 +5,8 @@ from confirm_team_name import confirm_team_name_app
 # from invite_users_v2 import invite_users_app_v2
 
 from invite_users_v3 import invite_users_app_v3
+from api_calls import api_calls_app
 
-# from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 
@@ -19,6 +19,10 @@ app.register_blueprint(confirm_team_name_app)
 
 # Register invite users app
 app.register_blueprint(invite_users_app_v3)
+
+# Register api calls app
+app.register_blueprint(api_calls_app)
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
