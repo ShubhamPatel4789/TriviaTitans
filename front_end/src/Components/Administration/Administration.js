@@ -104,7 +104,8 @@ const Administration = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          promote_to_admin: email,
+          "promote_to_admin": email,
+          "team_name": team,
         }),
       });
 

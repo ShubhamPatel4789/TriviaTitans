@@ -128,4 +128,45 @@ def get_admin():
             'statusCode': 500,
             'body': json.dumps({'error': str(e)})
         }
+@api_calls_app.route("/promote-to-admin", methods=["POST"])
+def promote_to_admin():
+    dynamodb_client = boto3.client('dynamodb')
+    try:
+        data = json.loads(request.data)
+        email = data.get('promote_to_admin')
+        team_name = data.get('team_name')
 
+        # Fetch the DynamoDB item for the team
+        response = dynamodb_client.get_item(
+            TableName='Teams',
+            Key={'teamName': {'S': team_name}}
+        )
+
+        # Check if the team exists and the 'Admin' key is present
+        item = response.get('Item', {})
+        admin_email = item.get('Admin', {}).get('S', '')
+
+        if not admin_email:
+            return {
+                'statusCode': 400,
+                'body': f'Admin email not found for Team {team_name}.'
+            }
+
+        # Update the DynamoDB item to promote the specified email to admin
+        response = dynamodb_client.update_item(
+            TableName='Teams',
+            Key={'teamName': {'S': team_name}},
+            UpdateExpression='SET Admin = :email',
+            ExpressionAttributeValues={':email': {'S': email}}
+        )
+
+        return {
+            'statusCode': 200,
+            'body': f'Successfully promoted {email} to admin for Team {team_name}.'
+        }
+
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': f'Error: {str(e)}'
+        }
