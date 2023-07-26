@@ -121,10 +121,8 @@ def get_admin():
         item = response.get('Item', {})
         admin_email = item.get('Admin', {}).get('S', '')
         print(f"Team: {team_name}, Admin: ", admin_email)
-        return {
-            'statusCode': 200,
-            'body': json.dumps({'admin_email': admin_email})
-        }
+        return {"admin_email": admin_email}, 200
+        
     except Exception as e:
         return {
             'statusCode': 500,

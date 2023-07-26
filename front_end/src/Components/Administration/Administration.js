@@ -5,7 +5,8 @@ import './Administration.css'; // Import the CSS file
 const Administration = () => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [teamName, setTeamName] = useState('');
-  const [admin] = useState('');
+  // const admin = "";
+  const [admin, setAdmin] = useState('');
 
   const apiURL = `http://localhost:5000`;
 
@@ -25,8 +26,11 @@ const Administration = () => {
 
       if (response.ok) {
         const data = await response.json();
-
-        console.log('Admin:', data.admin_email);
+        console.log('Admin:',data.admin_email)
+        // console.log(typeof admin)
+        // admin = data.admin_email;
+        setAdmin(data.admin_email);
+        // console.log('Admin:', data.);
       } else {
         console.error('Error:', response.status);
       }
@@ -65,7 +69,6 @@ const Administration = () => {
       setTeamName(storedTeamName);
       fetchTeamMembers(storedTeamName); // Fetch team members after loading the teamName
       fetchAdmin(storedTeamName); // Fetch admin information after loading the teamName
-
     }
   }, [fetchTeamMembers, fetchAdmin]);
   const handleRemoveMember = async (email) => {
@@ -97,7 +100,7 @@ const Administration = () => {
     <div>
       <h1 align="center">Team Management</h1>
       <h2>Team Name: {teamName}</h2>
-      {admin && <p>Admin: {admin}</p>}
+      {admin && <p><b>Admin:</b> {admin}</p>}
       {teamMembers.length > 0 ? (
         <ul>
           {teamMembers.map((member, index) => (
