@@ -69,14 +69,17 @@ const Administration = () => {
     <div>
       <h1 align="center">Team Management</h1>
       <h2>Team Name: {teamName}</h2>
-      {/* Display the list of team members */}
-      <ul>
-        {teamMembers.map((member, index) => (
-          <li key={index}>
-            {member} <button onClick={() => handleRemoveMember(member)}>X</button>
-          </li>
-        ))}
-      </ul>
+      {teamMembers.length > 0 ? (
+        <ul>
+          {teamMembers.map((member, index) => (
+            <li key={index}>
+              {member} <button onClick={() => handleRemoveMember(member)}>X</button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>No members present.</p>
+      )}
     </div>
   );
 };
