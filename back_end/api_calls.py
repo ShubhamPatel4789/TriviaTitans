@@ -15,6 +15,8 @@ def add_headers(response):
 dynamodb = boto3.resource('dynamodb')
 table_name = "Teams"
 
+# Initialize the AWS Lambda client
+lambda_client = boto3.client('lambda')
 
 @api_calls_app.route("/get-current-members/<teamName>",methods=["POST"])
 def get_team_members(teamName):
@@ -71,3 +73,33 @@ def fetch_team_details():
             return team_details_response
             # break
     return team_details_response
+
+@api_calls_app.route("/remove-member", methods=["POST"])
+def remove_member():
+    try:
+        email = request.json['email']
+        # Get the team_name from the request
+        team_name = request.json.get('team_name')
+
+        # Construct the payload for the Lambda function
+        payload = {
+            "team_name": team_name,
+            "email": email
+        }
+        # print(payload)
+        # Invoke the UpdateDeclinedInvitationsToDB Lambda asynchronously
+        response = lambda_client.invoke(
+            FunctionName='UpdateDeclinedInvitationsToDB',
+            InvocationType='Event',
+            Payload=json.dumps(payload)
+        )
+        # print(response)
+        # Check if the invocation was successful
+        if response['StatusCode'] == 202:
+            return {"message": f"Member - {email}, removal success."}, 200
+        else:
+            error_response = {"error": "Failed to remove member.", "response":response} 
+            return jsonify(error_response), 500
+        # return "",200
+    except Exception as e:
+        return {"error": str(e)}, 500

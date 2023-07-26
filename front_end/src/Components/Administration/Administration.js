@@ -14,12 +14,14 @@ const Administration = () => {
       fetchTeamMembers(storedTeamName); // Fetch team members after loading the teamName
     }
   }, []);
+
   const apiURL = `http://localhost:5000`;
+
+  const team = "Quiztify"
   // Function to fetch team members based on the teamName
   const fetchTeamMembers = async (teamName) => {
     try {
-      // const response = await fetch();
-      const team = "Quiztify";
+      
       const response = await fetch(`${apiURL}/get-current-members/${team}`, {
         method: 'POST',
         headers: {
@@ -29,9 +31,32 @@ const Administration = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // console.log(data);
         setTeamMembers(data);
-        console.log(data);
+      } else {
+        console.error('Error:', response.status);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const handleRemoveMember = async (email) => {
+    try {
+      const response = await fetch(`${apiURL}/remove-member`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          "team_name": team,
+          "email": email
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Member removed:', email);
+        // Update the team members list after removing the member
+        setTeamMembers((prevMembers) => prevMembers.filter((member) => member !== email));
       } else {
         console.error('Error:', response.status);
       }
@@ -47,7 +72,9 @@ const Administration = () => {
       {/* Display the list of team members */}
       <ul>
         {teamMembers.map((member, index) => (
-          <li key={index}>{member}</li>
+          <li key={index}>
+            {member} <button onClick={() => handleRemoveMember(member)}>X</button>
+          </li>
         ))}
       </ul>
     </div>
