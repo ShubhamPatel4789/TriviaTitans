@@ -60,10 +60,14 @@ def fetch_team_details():
         current_members = item.get('CurrentMembers', [])
         print(current_members)
         print("current_members:",current_members)
+        isAdmin = item['Admin'] == email
+        print(isAdmin)
         if email in current_members:
             print(True)
             team_details_response['isPartOfTeam'] = True
             team_details_response['teamName'] = team_name
-            team_details_response['teamMembers'] = current_members
-            break
-    return team_details_response
+            team_details_response['teamMembers'] = current_members.copy()
+            team_details_response['isTeamAdmin'] = isAdmin
+            return team_details_response
+            # break
+    return []
