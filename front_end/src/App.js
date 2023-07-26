@@ -16,8 +16,7 @@ function App() {
           <Route path="/landing-page/" element={<LandingPage />} />
           <Route path="/invite-users/:teamName" element={<InviteUsers />} />
           <Route path="/teamStatistics/" element={<TeamStatistics />} />
-          
-          <Route path="/Administration/" element={<Administration />} />
+          <Route path="/administration" element={<Administration />} />
 
         </Routes>
       </Router>

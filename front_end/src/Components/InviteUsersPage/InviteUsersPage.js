@@ -20,6 +20,12 @@ const InviteUsersPage = () => {
     }
   };
 
+  // Function to add the teamName to local storage
+  const storeTeamNameInLocalStorage = (teamName) => {
+    localStorage.setItem('teamName', teamName);
+  };
+  // Store the teamName in local storage when the component mounts
+  storeTeamNameInLocalStorage(teamName);
   const validateEmail = (email) => {
     // Use a regular expression pattern to validate the email format
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

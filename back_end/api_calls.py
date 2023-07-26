@@ -16,7 +16,7 @@ dynamodb = boto3.resource('dynamodb')
 table_name = "Teams"
 
 
-@api_calls_app.route("/get-team-members/<teamName>",methods=["POST"])
+@api_calls_app.route("/get-current-members/<teamName>",methods=["POST"])
 def get_team_members(teamName):
     table = dynamodb.Table(table_name)
     
@@ -28,7 +28,7 @@ def get_team_members(teamName):
     
     # print(response['Items']['CurrentMembers'])
     items = response['Items']
-    print(items)
+    # print(items)
     # currentMembers = items['CurrentMembers']
     if items:
         team_members = items[0].get('CurrentMembers', [])  # Use an empty list as the default if 'CurrentMembers' not found
@@ -40,7 +40,7 @@ def get_team_members(teamName):
 def fetch_team_details():
     team_details_response = {
         'isPartOfTeam': False,
-        'teamName': "",
+        'teamName': None,
         'isTeamAdmin': False,
         'teamMembers': []
     }
@@ -70,4 +70,4 @@ def fetch_team_details():
             team_details_response['isTeamAdmin'] = isAdmin
             return team_details_response
             # break
-    return []
+    return team_details_response

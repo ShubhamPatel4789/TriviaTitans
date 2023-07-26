@@ -3,6 +3,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import './HomePage.css'
 const HomePage = () => {
+  // const navigate = useNavigate();
+  // const navigateToAdministration = () => {
+  // const teamname = "";
+  // navigate(`/administration/${teamname}`); // Navigate to the "Invite" page
+    
+    // };
   return (
     <div>
       <h1 align="center">Team Management</h1>
@@ -14,6 +20,7 @@ const HomePage = () => {
           <button>View Team Stats</button>
         </Link>
         <Link to="/administration">
+          {/* <button onClick={navigateToAdministration} >Administration</button> */}
           <button>Administration</button>
         </Link>
       </div>
