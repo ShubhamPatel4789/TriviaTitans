@@ -1,0 +1,25 @@
+/* Default styles for the Remove (X) button */
+.removeButton {
+    color: darkgrey;
+    /* background-color: transparent; */
+    border: none;
+    cursor: pointer;
+  }
+  
+  /* Hover styles for the Remove (X) button */
+  .removeButton:hover {
+    background-color: red;
+  }
+  
+  /* Default styles for the Promote to Admin button */
+  .promoteButton {
+    color: rgb(0, 0, 0);
+    /* background-color: transparent; */
+    border: none;
+    cursor: pointer;
+  }
+  
+  /* Hover styles for the Promote to Admin button */
+  .promoteButton:hover {
+    background-color: rgb(0, 210, 0);
+  }

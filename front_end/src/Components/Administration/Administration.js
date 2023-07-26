@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback  } from 'react';
 
-import './Administration.css'; // Import the CSS file
-
+// import './Administration.css'; // Import the CSS file
+import './Administration.css';
 const Administration = () => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [teamName, setTeamName] = useState('');
@@ -96,6 +96,30 @@ const Administration = () => {
     }
   };
 
+  const handlePromoteToAdmin = async (email) => {
+    try {
+      const response = await fetch(`${apiURL}/promote-to-admin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          promote_to_admin: email,
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Member promoted to admin:', email);
+        // Update the admin state after promoting a member
+        setAdmin(email);
+      } else {
+        console.error('Error:', response.status);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   return (
     <div>
       <h1 align="center">Team Management</h1>
@@ -105,7 +129,9 @@ const Administration = () => {
         <ul>
           {teamMembers.map((member, index) => (
             <li key={index}>
-              {member} <button onClick={() => handleRemoveMember(member)}>X</button>
+              {member}{' '}
+              <button className="removeButton" onClick={() => handleRemoveMember(member)}>X</button>{' '}
+              <button className="promoteButton" onClick={() => handlePromoteToAdmin(member)}>Promote to Admin</button>
             </li>
           ))}
         </ul>
