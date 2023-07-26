@@ -103,3 +103,31 @@ def remove_member():
         # return "",200
     except Exception as e:
         return {"error": str(e)}, 500
+    
+@api_calls_app.route("/get-admin", methods=["POST"])
+def get_admin():
+    dynamodb_client = boto3.client('dynamodb')
+
+    try:
+        request_data = request.get_json()
+        team_name = request_data.get('team_name')
+
+        # Fetch the DynamoDB item for the team
+        response = dynamodb_client.get_item(
+            TableName='Teams',
+            Key={'teamName': {'S': team_name}}
+        )
+
+        item = response.get('Item', {})
+        admin_email = item.get('Admin', {}).get('S', '')
+        print(f"Team: {team_name}, Admin: ", admin_email)
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'admin_email': admin_email})
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }
+
