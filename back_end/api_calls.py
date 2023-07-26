@@ -35,3 +35,35 @@ def get_team_members(teamName):
         print(f"Return Team members of {teamName}:",team_members)
         return team_members
     return []
+
+@api_calls_app.route("/get-team-details",methods=["POST"])
+def fetch_team_details():
+    team_details_response = {
+        'isPartOfTeam': False,
+        'teamName': "",
+        'isTeamAdmin': False,
+        'teamMembers': []
+    }
+    # Extract the email from the JSON request
+    email = request.json['email']
+    # print(email)
+    # dynamodb_client = boto3.client('dynamodb')
+    table = dynamodb.Table(table_name)
+
+    response = table.scan()
+    items = response.get('Items', [])
+    # print(items)
+    
+    for item in items:
+        team_name = item.get('teamName')
+        print(team_name)
+        current_members = item.get('CurrentMembers', [])
+        print(current_members)
+        print("current_members:",current_members)
+        if email in current_members:
+            print(True)
+            team_details_response['isPartOfTeam'] = True
+            team_details_response['teamName'] = team_name
+            team_details_response['teamMembers'] = current_members
+            break
+    return team_details_response

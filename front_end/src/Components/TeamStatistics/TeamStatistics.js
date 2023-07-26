@@ -15,9 +15,33 @@ const TeamStatistics = ({ teamName, gamesPlayed, wins, losses, totalPoints, fetc
   };
 
   // Handler for the fetch button click
-  const handleFetchButtonClick = () => {
-    // Call the fetchTeamDetails function passed from the parent component
-    fetchTeamDetails(inputTeamName);
+  // const handleFetchButtonClick = () => {
+  //   // Call the fetchTeamDetails function passed from the parent component
+  //   fetchTeamDetails(inputTeamName);
+  // };
+  const handleFetchButtonClick = async () => {
+    try {
+      const response = await fetch(`teamStatistics/${inputTeamName}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        // Update the constants with the fetched data
+        setGeneratedName(data.teamName);
+        setGamesPlayed(data.gamesPlayed);
+        setWins(data.wins);
+        setLosses(data.losses);
+        setTotalPoints(data.totalPoints);
+      } else {
+        console.error('Error:', response.status);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   return (
