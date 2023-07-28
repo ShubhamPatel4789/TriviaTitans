@@ -6,3 +6,5 @@ flask-app-v2/__pycache__/*
 
 # Ignore all files inside the .serverless folder
 flask-app-v2/.serverless/*
+
+front_end/node_modules

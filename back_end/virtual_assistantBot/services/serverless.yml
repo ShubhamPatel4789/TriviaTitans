@@ -1,0 +1,29 @@
+service: LEX-bot-assistance
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.10
+  stage: dev
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'sns:*'
+      Resource: '*'
+  role: arn:aws:iam::577960482124:role/LabRole
+  
+functions:
+  fulfillmentHandler:
+    handler: lambda_handler.fulfillment_handler
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: false
+
+
+
+

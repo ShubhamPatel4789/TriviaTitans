@@ -7,6 +7,7 @@ import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
 import firebaseConfig from './firebaseConfig';
+import ChatBot from './Components/virtualAssitance/ChatBot';
 
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
@@ -20,6 +21,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<UserRegister />} />
           <Route path="/invite-users/:teamName" element={<InviteUsers />} />
+          <Route path="/chatbot" element={<ChatBot />} />
         </Routes>
       </Router>
     </div>
