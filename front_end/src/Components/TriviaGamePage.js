@@ -4,6 +4,7 @@ import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import ChatComponent from './ChatComponent';
+import { useSearchParams } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -75,100 +76,65 @@ const TriviaGamePage = () => {
   const [isTimerExpired, setIsTimerExpired] = useState(false);
   const [teamScore, setTeamScore] = useState({});
   const [individualScore, setIndividualScore] = useState({});
-  
+  const [isAnsweringAllowed, setIsAnsweringAllowed] = useState({});
+  const [gameStarted, setGameStarted] = useState(false);
+  const [gameEnded, setGameEnded] = useState(false);
 
   const teamName = localStorage.getItem('teamName');
   const emailId = localStorage.getItem('email');
   const[isTeamGame,setIsTeamGame]=useState(teamName!==null);
+  const[gameData,setGameData]=useState(null)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const gameId=searchParams.get("gameId")
+
+  const teamDetails={isPartOfTeam:true,
+  teamName:"team1",
+  IsTeamAdmin:true,
+  teamMembers:["lp6126@gmail.com","jp6126@gmail.com"]}
 
 
-  const gameData = {
-    gameId: 'game12345',
-    isGameEnded: true,
-    isGameStarted: true,
-    participantEmails: ['lp6126@gmail.com', 'user@example.com'],
-    timeRemaining: '-4238:41',
-    trivia: {
-      categoryName: 'sports',
-      difficultyLevel: 'easy',
-      shortDescription: 'legends of cricket',
-      timeFrame: 5,
-      triviaId: '123456',
-      triviaName: 'legends',
-      "questions": [
-        {
-          "questionId": "12345",
-          "text": "Who is known as the 'Master Blaster' in cricket?",
-          "options": ["Sachin Tendulkar", "Rahul Dravid", "Virender Sehwag", "Kapil Dev"],
-          "correctAnswer": "Sachin Tendulkar",
-          "explanation": "Sachin Tendulkar is known as the 'Master Blaster' due to his exceptional batting skills."
-        },
-        {
-          "questionId": "12346",
-          "text": "Which country won the first-ever Cricket World Cup in 1975?",
-          "options": ["Australia", "West Indies", "England", "India"],
-          "correctAnswer": "West Indies",
-          "explanation": "West Indies won the inaugural Cricket World Cup held in 1975."
-        },
-        {
-          "questionId": "12347",
-          "text": "Who holds the record for the highest individual score in Test cricket?",
-          "options": ["Don Bradman", "Brian Lara", "Sachin Tendulkar", "Virender Sehwag"],
-          "correctAnswer": "Brian Lara",
-          "explanation": "Brian Lara holds the record for the highest individual score in Test cricket with 400 runs."
-        },
-        {
-          "questionId": "12348",
-          "text": "Which cricketer has scored the most international runs in his career?",
-          "options": ["Sachin Tendulkar", "Ricky Ponting", "Kumar Sangakkara", "Virat Kohli"],
-          "correctAnswer": "Sachin Tendulkar",
-          "explanation": "Sachin Tendulkar has scored the most international runs in his career."
-        },
-        {
-          "questionId": "12349",
-          "text": "Who is the only cricketer to have scored 10,000 runs or more in ODIs?",
-          "options": ["Sachin Tendulkar", "Ricky Ponting", "Kumar Sangakkara", "Virat Kohli"],
-          "correctAnswer": "Sachin Tendulkar",
-          "explanation": "Sachin Tendulkar is the only cricketer to have scored 10,000 runs or more in One Day Internationals (ODIs)."
-        },
-        {
-          "questionId": "12350",
-          "text": "Which cricketer has taken the most wickets in Test cricket?",
-          "options": ["Muttiah Muralitharan", "Shane Warne", "Anil Kumble", "Glenn McGrath"],
-          "correctAnswer": "Muttiah Muralitharan",
-          "explanation": "Muttiah Muralitharan has taken the most wickets in Test cricket with 800 wickets."
-        },
-        {
-          "questionId": "12351",
-          "text": "Who is the only cricketer to score a double century in a One Day International (ODI) match?",
-          "options": ["Sachin Tendulkar", "Rohit Sharma", "Virender Sehwag", "Chris Gayle"],
-          "correctAnswer": "Sachin Tendulkar",
-          "explanation": "Sachin Tendulkar is the only cricketer to score a double century in a One Day International (ODI) match."
-        },
-        {
-          "questionId": "12352",
-          "text": "Which country has won the most Cricket World Cups?",
-          "options": ["Australia", "India", "West Indies", "Pakistan"],
-          "correctAnswer": "Australia",
-          "explanation": "Australia has won the most Cricket World Cups, with a total of 5 titles."
-        },
-        {
-          "questionId": "12353",
-          "text": "Who is the current captain of the Indian cricket team?",
-          "options": ["Virat Kohli", "Rohit Sharma", "KL Rahul", "Shikhar Dhawan"],
-          "correctAnswer": "Virat Kohli",
-          "explanation": "Virat Kohli is the current captain of the Indian cricket team."
-        },
-        {
-          "questionId": "12354",
-          "text": "Who is the fastest bowler in the history of cricket?",
-          "options": ["Shoaib Akhtar", "Brett Lee", "Mitchell Johnson", "Jeff Thomson"],
-          "correctAnswer": "Shoaib Akhtar",
-          "explanation": "Shoaib Akhtar is considered the fastest bowler in the history of cricket."
+  useEffect(() => {
+    // Function to fetch the game data from the API
+    const fetchGameDataFromAPI = async () => {
+      try {
+        // Modify the URL to match your API endpoint for fetching game data
+        const response = await fetch('https://us-central1-sdp17-392601.cloudfunctions.net/trivia-details-dev-activeGameDetailsById', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ gameId: gameId, emailId: emailId || null, teamName: teamName || null }),
+        });
+
+        if (!response.ok) {
+          // Handle API error if needed
+          console.error('Error fetching game data from API:', response.status, response.statusText);
+          return;
         }
-      ],
-    },
-  };
+
+        const data = await response.json();
+        setGameData(data); // Set the fetched game data to the state
+        if (teamDetails.isPartOfTeam && data.participantTeams.includes(teamDetails.teamName)) {
+          setIsTeamGame(true);
+
+          // Check if the user is an admin
+          if (!teamDetails.isAdmin) {
+            // User is not an admin, disable answering questions
+            setIsAnsweringAllowed(false);
+          }
+        }
+        setGameStarted(true);
+      } catch (error) {
+        // Handle any other errors that may occur during the fetch
+        console.error('Error fetching game data:', error);
+      }
+    };
+
+    if (!gameData) {
+      fetchGameDataFromAPI();
+    }
+  }, [gameData, emailId, teamName]);
+
 
     // Function to update the score on the server
 const updateScoreOnServer = async (email, teamName,correctAnswer, answered, currentQuestion) => {
@@ -211,26 +177,29 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
       }
 };
   useEffect(() => {
-    if (!isAnswered && !showAnswer) {
-      setQuestionTimer(gameData.trivia.timeFrame);
-      const timer = setInterval(() => {
-        setQuestionTimer((prevTimer) => {
-          if (prevTimer === 1) {
-            clearInterval(timer);
-            setIsTimerExpired(true);
-            handleEvaluate();
-           // Call the updateScoreOnServer function with the necessary parameters
-          updateScoreOnServer(emailId,teamName, false, false, currentQuestion);
-            
-          }
-          return prevTimer - 1;
-        });
-      }, 1000);
-      return () => clearInterval(timer);
+    if(gameData){
+      if (!isAnswered && !showAnswer) {
+        setQuestionTimer(gameData.trivia.timeFrame);
+        const timer = setInterval(() => {
+          setQuestionTimer((prevTimer) => {
+            if (prevTimer === 1) {
+              clearInterval(timer);
+              setIsTimerExpired(true);
+              handleEvaluate();
+            // Call the updateScoreOnServer function with the necessary parameters
+            updateScoreOnServer(emailId,teamName, false, false, currentQuestion);
+              
+            }
+            return prevTimer - 1;
+          });
+        }, 1000);
+        return () => clearInterval(timer);
     }
-  }, [currentQuestion, isAnswered, showAnswer, gameData.trivia.timeFrame]);
+  }
+  }, [currentQuestion, isAnswered, showAnswer, gameData]);
 
   useEffect(() => {
+    if(gameData){
 
         // Function to fetch scores from the API and set the state
     const fetchScoresFromAPI = async () => {
@@ -283,7 +252,8 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
     return () => {
       socket.close();
     };
-  }, [gameData.gameId]);
+    }
+  }, [gameData]);
 
   const handleOptionSelect = (option) => {
     setSelectedOption(option);
@@ -303,7 +273,8 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
     if (currentQuestion < gameData.trivia.questions.length - 1) {
       setCurrentQuestion((prevQuestion) => prevQuestion + 1);
     } else {
-      // Handle end of game logic
+      setGameEnded(true)
+      
     }
   };
 
@@ -317,12 +288,102 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
       updateScoreOnServer(emailId, teamName,isCorrectAnswer, true, currentQuestion);
     }
   };
+  const renderGameContent = () => {
+    if (!gameStarted) {
+      // Show the Start button until the game has started
+      return (
+        <div>
+          <Button variant="contained" color="primary" onClick={handleStartGame}>
+            Start Game
+          </Button>
+        </div>
+      );
+    } else if (gameStarted && !gameData) {
+      // Show the loading screen until the game data is fetched
+      return <div>Loading...</div>;
+    } else {
+      // Show the game content when the game has started and data is available
+      // ... (Render the game content as before)
+    }
+  };
+  const renderScoreTable = () => {
+    // Create a combined score array for both teams and individuals
+    const combinedScores = [
+      ...Object.entries(individualScore).map(([email, score]) => ({ name: email, score, isTeam: false })),
+      ...Object.entries(teamScore).map(([team, score]) => ({ name: team, score, isTeam: true })),
+    ];
+
+    // Sort the combinedScores array in descending order based on the score
+    combinedScores.sort((a, b) => b.score - a.score);
+
+    return (
+      <div>
+        <Typography variant="h6">Scores</Typography>
+        {combinedScores.map((entry, index) => (
+          <Typography key={index} variant="body1">
+            {`${entry.isTeam ? 'Team' : 'Individual'}: ${entry.name} - Score: ${entry.score}`}
+          </Typography>
+        ))}
+      </div>
+    );
+  };
+
+  const handleStartGame = () => {
+    setGameStarted(true);
+  };
+  if (!gameStarted) {
+    // Show the Start button until the game has started
+    return (
+      <div>
+        <Button variant="contained" color="primary" onClick={handleStartGame}>
+          Start Game
+        </Button>
+      </div>
+    );
+  } else if (gameStarted && !gameData) {
+    // Show the loading screen until the game data is fetched
+    return <div>Loading...</div>;
+  }
+  else if (gameEnded && gameStarted && !gameData) {
+    // Show the loading screen until the game data is fetched
+    return (
+    <div className={classes.root}>
+        <div>{renderScoreTable()}</div>
+      </div>
+      );
+  }
 
   const currentQuestionData = gameData.trivia.questions[currentQuestion];
+  const currentUserScore = isTeamGame ? teamScore[teamName] : individualScore[emailId];
+
 
   return (
     <div className={classes.root}>
+      {gameEnded && (
+      <div>
+                <Typography variant="h4" >
+                Game Over
+              </Typography>
+      {renderScoreTable()}
+      
+      </div>
+
+      )}
+
+      
+      {!gameEnded && (
+        <>
       <Box className={classes.container}>
+        <div className={classes.scoresContainer}>
+          <Typography variant="h6">
+            {isTeamGame ? `Team ${teamName}` : emailId}
+          </Typography>
+          <Typography variant="h6">
+            {isTeamGame
+              ? `Score: ${currentUserScore || 0}`
+              : `Score: ${currentUserScore || 0}`}
+          </Typography>
+        </div>
         <div className={classes.timerContainer}>
           <Typography variant="h6" className={classes.timer}>
             Game Timer: {gameData.timeRemaining}
@@ -332,7 +393,7 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
           </Typography>
         </div>
         <div className={classes.questionContainer}>
-          {!isTimerExpired && !isAnswered && (
+          {!isTimerExpired && !isAnswered && !gameEnded && (
             <>
               <Typography variant="h5" className={classes.question}>
                 {currentQuestionData.text}
@@ -363,7 +424,7 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
               )}
             </>
           )}
-          {(isAnswered || isTimerExpired )&& showAnswer && (
+          {(isAnswered || isTimerExpired )&& showAnswer && !gameEnded &&  (
                         <div className={classes.answerContainer}>
                         <Typography variant="h6" className={classes.answer}>
                           {isCorrect ? 'Correct!' : 'Incorrect!'}
@@ -400,6 +461,8 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
         </div>
       </Box>
       <ChatComponent></ChatComponent>
+      </>
+      )}
     </div>
   );
   

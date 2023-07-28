@@ -12,6 +12,7 @@ import Select from 'react-select';
 const difficultyLevels = ['easy', 'medium', 'difficult'];
 const timeframes = [5, 10, 15, 20];
 
+
 const useStyles = makeStyles((theme) => ({
     formControl: {
         minWidth: 200,
@@ -34,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const TriviaManagementPage = () => {
-    const ses = useStyles();
+    const classes = useStyles();
     const [categories, setCategories] = useState([]);
     const [category, setCategory] = useState(null);
     const [difficulty, setDifficulty] = useState(null);
