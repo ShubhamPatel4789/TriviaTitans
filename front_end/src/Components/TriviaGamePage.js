@@ -5,6 +5,7 @@ import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import ChatComponent from './ChatComponent';
 import { useSearchParams } from 'react-router-dom';
+import TextField from '@material-ui/core/TextField';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -63,6 +64,37 @@ const useStyles = makeStyles((theme) => ({
   answer: {
     marginBottom: theme.spacing(2),
   },
+  chatContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+  },
+  messagesContainer: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+    backgroundColor: '#f5f5f5',
+    borderRadius: theme.spacing(1),
+  },
+  message: {
+    marginBottom: theme.spacing(1),
+  },
+  sender: {
+    fontWeight: 'bold',
+    marginRight: theme.spacing(1),
+  },
+  ownMessage: {
+    color: 'red',
+  },
+  inputContainer: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  input: {
+    flex: 1,
+    marginRight: theme.spacing(1),
+  },
 }));
 
 const TriviaGamePage = () => {
@@ -76,22 +108,166 @@ const TriviaGamePage = () => {
   const [isTimerExpired, setIsTimerExpired] = useState(false);
   const [teamScore, setTeamScore] = useState({});
   const [individualScore, setIndividualScore] = useState({});
-  const [isAnsweringAllowed, setIsAnsweringAllowed] = useState({});
+  const [isAnsweringAllowed, setIsAnsweringAllowed] = useState(true);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
+  const [isLobbyMessageSent, setLobbyMessageSent] = useState(false);
 
   const teamName = localStorage.getItem('teamName');
-  const emailId = localStorage.getItem('email');
-  const[isTeamGame,setIsTeamGame]=useState(teamName!==null);
+
+  const[isTeamGame,setIsTeamGame]=useState(teamName!=null);
   const[gameData,setGameData]=useState(null)
   const [searchParams, setSearchParams] = useSearchParams();
   const gameId=searchParams.get("gameId")
+  const [teamGameSocket,setTeamGameSocket]=useState(null)
+  const [teamPlayersInLobby,setTeamPlayersInLobby]=useState([])
+  const [teamPlayersGameStarted,setTeamPlayersGameStarted]=useState([])
+  const [socket1, setSocket] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  const emailId = localStorage.getItem('email');
 
-  const teamDetails={isPartOfTeam:true,
+
+  let teamDetails={isPartOfTeam:true,
   teamName:"team1",
-  IsTeamAdmin:true,
-  teamMembers:["lp6126@gmail.com","jp6126@gmail.com"]}
+  IsTeamAdmin:localStorage.getItem('isAdmin')==="true",
+  teamMembers:["newuser123@gmail.com","user2@gmail.com"]}
 
+  if (!isTeamGame){
+    teamDetails.isPartOfTeam=false
+  }
+
+  const inLobbySendMessage = (socketConnection,state) => {
+    const payload = {
+      action: "gameplay",
+      message: {email:emailId,state:state},
+    };
+
+
+    if (socketConnection && socketConnection.readyState === WebSocket.OPEN) {
+      socketConnection.send(JSON.stringify(payload));
+    }
+    setLobbyMessageSent(true)
+  };
+
+  const questionAnsweredMessage = (isCorrect) => {
+    const payload = {
+      action: "gameplay",
+      message: {action:"answered",isCorrect:isCorrect},
+    };
+
+    if (teamGameSocket && teamGameSocket.readyState === WebSocket.OPEN) {
+      teamGameSocket.send(JSON.stringify(payload));
+    }
+  };
+
+  const nextQuestionMessage = () => {
+    const payload = {
+      action: "gameplay",
+      message: {action:"nextQuestion"},
+    };
+
+    if (teamGameSocket && teamGameSocket.readyState === WebSocket.OPEN) {
+      teamGameSocket.send(JSON.stringify(payload));
+    }
+  };
+
+  const handleInputChange = (event) => {
+    setInputValue(event.target.value);
+  };
+
+  const handleSendMessage = () => {
+    if (inputValue.trim() !== '') {
+      sendMessage(inputValue);
+      setInputValue('');
+    }
+  };
+
+  const sendMessage = (message) => {
+    const payload = {
+      action: "sendmessage",
+      message: message,
+    };
+
+    if (teamGameSocket && teamGameSocket.readyState === WebSocket.OPEN) {
+      teamGameSocket.send(JSON.stringify(payload));
+    }
+    setMessages((prevMessages) => [...prevMessages, {"email":emailId,"message":message}]);
+  };
+
+  useEffect(() => {
+
+    if(isTeamGame){
+      const socketConnection = new WebSocket(
+        'wss://3p2u6ghz7j.execute-api.us-east-2.amazonaws.com/production?teamName=' +
+          teamName +
+          '&emailId=' +
+          emailId
+      );
+  
+      socketConnection.onopen = () => {
+        setTeamGameSocket(socketConnection);
+        if(!isLobbyMessageSent){
+          inLobbySendMessage(socketConnection,"inLobby")
+        }
+
+      };
+  
+      socketConnection.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        console.log('Received message:', message);
+        if (message.messageType==="preGame"){
+          setTeamPlayersInLobby(message.inLobby);
+          setTeamPlayersGameStarted(message.startedGame)
+          handleTeamMemberJoin(message.startedGame,message.inLobby);
+          
+  
+        }
+        else if (message.messageType==="chat"){
+          setMessages((prevMessages) => [...prevMessages, message]);
+
+
+  
+        }
+        else if (message.messageType==="answered"){
+          console.log(gameData)
+
+          setIsAnswered(true);
+          
+          setIsCorrect(message.isCorrect);
+          setShowAnswer(true);
+
+  
+        }
+        else if (message.messageType==="nextQuestion"){
+          
+          console.log(gameData)
+          setSelectedOption('');
+          setIsAnswered(false);
+          setShowAnswer(false);
+          setQuestionTimer(0);
+          setIsTimerExpired(false);
+      
+          if (currentQuestion < gameData.trivia.questions.length - 1) {
+            setCurrentQuestion((prevQuestion) => prevQuestion + 1);
+          } else {
+            setGameEnded(true)
+            
+          }
+        }
+
+
+      };
+  
+      return () => {
+        if (socketConnection) {
+          socketConnection.close();
+        }
+      };
+
+    }
+
+  }, [isTeamGame,showAnswer]);
 
   useEffect(() => {
     // Function to fetch the game data from the API
@@ -118,9 +294,10 @@ const TriviaGamePage = () => {
           setIsTeamGame(true);
 
           // Check if the user is an admin
-          if (!teamDetails.isAdmin) {
+          if (!teamDetails.IsTeamAdmin) {
             // User is not an admin, disable answering questions
             setIsAnsweringAllowed(false);
+            console.log(isAnsweringAllowed)
           }
         }
         setGameStarted(true);
@@ -130,10 +307,10 @@ const TriviaGamePage = () => {
       }
     };
 
-    if (!gameData) {
+    if (gameStarted&&!gameData) {
       fetchGameDataFromAPI();
     }
-  }, [gameData, emailId, teamName]);
+  }, [gameData, emailId, teamName,gameStarted,isAnsweringAllowed]);
 
 
     // Function to update the score on the server
@@ -177,17 +354,23 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
       }
 };
   useEffect(() => {
-    if(gameData){
+    if(gameData && gameStarted){
       if (!isAnswered && !showAnswer) {
-        setQuestionTimer(gameData.trivia.timeFrame);
+        setQuestionTimer((gameData.trivia.timeFrame*60)/10);
         const timer = setInterval(() => {
           setQuestionTimer((prevTimer) => {
             if (prevTimer === 1) {
               clearInterval(timer);
               setIsTimerExpired(true);
-              handleEvaluate();
-            // Call the updateScoreOnServer function with the necessary parameters
+
+            
+
+
+            if (isAnsweringAllowed){
+            handleEvaluate();
             updateScoreOnServer(emailId,teamName, false, false, currentQuestion);
+            }
+
               
             }
             return prevTimer - 1;
@@ -232,10 +415,11 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
     // Create a WebSocket connection
     const socketUrl = 'wss://5a0bu9svjd.execute-api.us-east-2.amazonaws.com/production?gameId=' + gameData.gameId;
     const socket = new WebSocket(socketUrl);
-
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     // Event listener for receiving messages from the WebSocket
     socket.onmessage = (event) => {
       try {
+        sleep(2000);
         const data = JSON.parse(event.data);
         if (data.teamScore) {
           setTeamScore(data.teamScore);
@@ -264,6 +448,9 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
   };
 
   const handleNextQuestion = () => {
+    if(isTeamGame &&isAnsweringAllowed){
+      nextQuestionMessage()
+    }
     setSelectedOption('');
     setIsAnswered(false);
     setShowAnswer(false);
@@ -279,33 +466,25 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
   };
 
   const handleEvaluate = (option) => {
-    const currentQuestionData = gameData.trivia.questions[currentQuestion];
-    const isCorrectAnswer = option === currentQuestionData.correctAnswer;
-    setIsCorrect(isCorrectAnswer);
-    setShowAnswer(true);
-    if (option!=null){
-      // Call the updateScoreOnServer function with the necessary parameters
-      updateScoreOnServer(emailId, teamName,isCorrectAnswer, true, currentQuestion);
+
+    if (isAnsweringAllowed){
+      const currentQuestionData = gameData.trivia.questions[currentQuestion];
+      const isCorrectAnswer = option === currentQuestionData.correctAnswer;
+      setIsCorrect(isCorrectAnswer);
+      
+      if (isTeamGame){
+        questionAnsweredMessage(isCorrectAnswer)
+      }
+      setShowAnswer(true);
+      if (option!=null){
+        // Call the updateScoreOnServer function with the necessary parameters
+        updateScoreOnServer(emailId, teamName,isCorrectAnswer, true, currentQuestion);
+      }
+
     }
+
   };
-  const renderGameContent = () => {
-    if (!gameStarted) {
-      // Show the Start button until the game has started
-      return (
-        <div>
-          <Button variant="contained" color="primary" onClick={handleStartGame}>
-            Start Game
-          </Button>
-        </div>
-      );
-    } else if (gameStarted && !gameData) {
-      // Show the loading screen until the game data is fetched
-      return <div>Loading...</div>;
-    } else {
-      // Show the game content when the game has started and data is available
-      // ... (Render the game content as before)
-    }
-  };
+
   const renderScoreTable = () => {
     // Create a combined score array for both teams and individuals
     const combinedScores = [
@@ -327,39 +506,98 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
       </div>
     );
   };
+  const [playersNotStarted, setPlayersNotStarted] = useState([]);
 
   const handleStartGame = () => {
-    setGameStarted(true);
+    
+    inLobbySendMessage(teamGameSocket,"startedGame");
+    if (!isTeamGame){
+      setGameStarted(true);
+    }
+
+
   };
-  if (!gameStarted) {
-    // Show the Start button until the game has started
+
+  const handleTeamMemberJoin = (teamPlayersGameStarted,teamPLayerInLobby) => {
+    
+
+    const notStartedPlayers = teamDetails.teamMembers.filter(
+      (member) => !teamPlayersGameStarted.includes(member)
+    );
+
+    if (notStartedPlayers.length > 0) {
+      setPlayersNotStarted(notStartedPlayers);
+    } else{
+      setGameStarted(true);
+    }
+
+
+
+  };
+
+  const chatGameRender=() =>{
     return (
-      <div>
-        <Button variant="contained" color="primary" onClick={handleStartGame}>
-          Start Game
-        </Button>
+      <div className={classes.chatContainer}>
+        <div className={classes.messagesContainer}>
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`${classes.message} ${
+                message.email === localStorage.getItem('email') ? classes.ownMessage : ''
+              }`}
+            >
+              <span className={classes.sender}>{message.email === localStorage.getItem('email') ? 'Me:' : message.email} </span>
+              <span>{message.message}</span>
+            </div>
+          ))}
+        </div>
+        <div className={classes.inputContainer}>
+          <TextField
+            className={classes.input}
+            variant="outlined"
+            label="Type your message..."
+            value={inputValue}
+            onChange={handleInputChange}
+          />
+          <Button variant="contained" color="primary" onClick={handleSendMessage}>
+            Send
+          </Button>
+        </div>
       </div>
     );
-  } else if (gameStarted && !gameData) {
-    // Show the loading screen until the game data is fetched
-    return <div>Loading...</div>;
-  }
-  else if (gameEnded && gameStarted && !gameData) {
-    // Show the loading screen until the game data is fetched
-    return (
-    <div className={classes.root}>
-        <div>{renderScoreTable()}</div>
-      </div>
-      );
+    
   }
 
-  const currentQuestionData = gameData.trivia.questions[currentQuestion];
+
+  const currentQuestionData = gameData?.trivia?.questions[currentQuestion];
   const currentUserScore = isTeamGame ? teamScore[teamName] : individualScore[emailId];
 
 
   return (
+    
     <div className={classes.root}>
-      {gameEnded && (
+      {!gameStarted && (
+      <Button variant="contained" color="primary" onClick={handleStartGame}>
+          Start Game
+        </Button>
+      
+      )}
+      {playersNotStarted.length > 0 && !gameStarted &&(
+        <Typography variant="body1">
+          Please wait for all players to start the game. Players who have not started: {playersNotStarted.join(', ')}
+        </Typography>
+      )}
+            {gameStarted && !gameData && (
+     <div>Loading...</div>
+      )}
+
+{gameEnded && gameStarted && !gameData && (
+             <div>{renderScoreTable()}
+
+             </div>
+      )}
+
+      {gameEnded &&  (
       <div>
                 <Typography variant="h4" >
                 Game Over
@@ -371,7 +609,7 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
       )}
 
       
-      {!gameEnded && (
+      {gameStarted&&!gameEnded && gameData&&  (
         <>
       <Box className={classes.container}>
         <div className={classes.scoresContainer}>
@@ -405,7 +643,8 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
                       key={option}
                       variant="outlined"
                       className={classes.option}
-                      onClick={() => handleOptionSelect(option)}
+                      onClick={() => isAnsweringAllowed && handleOptionSelect(option)}
+                      disabled={!isAnsweringAllowed}
                     >
                       {option}
                     </Button>
@@ -460,8 +699,15 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
           ))}
         </div>
       </Box>
-      <ChatComponent></ChatComponent>
+
       </>
+      )}
+      {!gameEnded &&isTeamGame&& teamGameSocket&&(
+                   chatGameRender()
+
+                 
+
+
       )}
     </div>
   );

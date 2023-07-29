@@ -37,9 +37,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ChatComponent = () => {
+const ChatComponent =({ socket,setTeamPlayersInLobby }) => {
   const classes = useStyles();
-  const [socket, setSocket] = useState(null);
+  const [socket1, setSocket] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const emailId = localStorage.getItem('email');
@@ -57,7 +57,7 @@ const ChatComponent = () => {
 
   const sendMessage = (message) => {
     const payload = {
-        action: "sendmessage",
+      action: "sendmessage",
       message: message,
     };
 
@@ -68,32 +68,21 @@ const ChatComponent = () => {
   };
 
   useEffect(() => {
-    const teamName = localStorage.getItem('teamName');
-    const emailId = localStorage.getItem('email');
 
-    const socketConnection = new WebSocket(
-      'wss://3p2u6ghz7j.execute-api.us-east-2.amazonaws.com/production?teamName=' +
-        teamName +
-        '&emailId=' +
-        emailId
-    );
-
-    socketConnection.onopen = () => {
-      setSocket(socketConnection);
-    };
-
-    socketConnection.onmessage = (event) => {
+    socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
       console.log('Received message:', message);
-      setMessages((prevMessages) => [...prevMessages, message]);
+      if (message.messageType==="chat"){
+        setMessages((prevMessages) => [...prevMessages, message]);
+
+      }
+      else if (message.messageType==="preGame"){
+        setTeamPlayersInLobby(message.inLobby);
+      }
+      
     };
 
-    return () => {
-      if (socketConnection) {
-        socketConnection.close();
-      }
-    };
-  }, []);
+  }, [socket]);
 
   return (
     <div className={classes.chatContainer}>
