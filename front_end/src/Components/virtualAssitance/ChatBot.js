@@ -4,6 +4,11 @@ import { LexRuntimeV2Client, RecognizeTextCommand } from "@aws-sdk/client-lex-ru
 import { v4 as uuidv4 } from 'uuid';
 import styled from "@emotion/styled";
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Refered From
+// "AWS SDK for JavaScript," Amazon Web Services, Inc., 2023. [Online]. Available: https://aws.amazon.com/sdk-for-javascript/. [Accessed: 29- Jul- 2023].
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 const theme = createTheme({
   palette: {
     primary: {
@@ -53,7 +58,9 @@ const ChatBox = styled.div`
 
 
 const ChatBot = () => {
+  // This state hook is used to store the current message that the user types into the chat box.
   const [message, setMessage] = useState('');
+  // This state hook is used to store the entire conversation between the user and the bot.
   const [conversation, setConversation] = useState([]);
   const [sessionId, setSessionId] = useState(uuidv4());
 
@@ -76,6 +83,7 @@ const ChatBot = () => {
     setMessage(e.target.value);
   };
 
+  // This function is called when the user submits a message.
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Submit function triggered'); //logs

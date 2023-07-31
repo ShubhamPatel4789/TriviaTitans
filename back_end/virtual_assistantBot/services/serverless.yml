@@ -1,6 +1,8 @@
+#This is the name of the service. It's a unique identifier for project.
 service: LEX-bot-assistance
 frameworkVersion: '3'
 
+# This section is used to specify the cloud provider for the service, along with configuration specific of the provider.
 provider:
   name: aws
   runtime: python3.10
@@ -11,15 +13,17 @@ provider:
       Action:
         - 'sns:*'
       Resource: '*'
-  role: arn:aws:iam::577960482124:role/LabRole
-  
+  role: arn:aws:iam::577960482124:role/LabRole # This specifies the IAM role that will be assumed by AWS
+
+# This section is used to define my Lambda functions.  
 functions:
-  fulfillmentHandler:
+  fulfillmentHandler: #Name of the Lambda Function
     handler: lambda_handler.fulfillment_handler
 
 plugins:
   - serverless-python-requirements
 
+#Custom Configurations
 custom:
   pythonRequirements:
     dockerizePip: false
