@@ -34,18 +34,15 @@ def NLP_Category(question):
 #####################################################################################################################################
 
 # Function to tag a question with categories
+
 def question_tag_confidencescore(request):
     request_json = request.get_json()
     question = request_json.get('question')
     if not question:
         return jsonify({'error': 'Missing question'}), 400
     try:
-         # Categorize the question
+        # Categorize the question
         categories_with_scores = NLP_Category(question)
-        db = firestore.Client()
-        doc_ref = db.collection('Questions').document()  # Create a new document with a random ID
-        # Set the 'Question', 'Tags', and 'TagScores' fields
-        doc_ref.set({'Question': question, 'Tags': list(categories_with_scores.keys()), 'TagScores': categories_with_scores})
         # Return the categories and confidence scores as a JSON response
         return jsonify({'categories': categories_with_scores})
     except Exception as e:
