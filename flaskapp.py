@@ -1,16 +1,16 @@
-from flask import  jsonify, request
+from flask import Flask, jsonify, request
 from google.cloud import firestore
-import logging
 from datetime import datetime, timedelta
+from flask_cors import cross_origin
 import uuid
+import logging
 
-
-
+# Create the Flask app
+app = Flask(__name__)
 
 # Initialize the Firestore client
 db = firestore.Client()
 
-# Define the CORS headers function
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'  # Allow requests from any domain
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'  # Allow the specified HTTP methods
@@ -18,7 +18,6 @@ def add_cors_headers(response):
     return response
 
 def get_document_by_id(collection_name, document_id):
-    
     collection_ref = db.collection(collection_name)
     doc_ref = collection_ref.document(document_id)
     doc = doc_ref.get()
@@ -28,12 +27,9 @@ def get_document_by_id(collection_name, document_id):
     else:
         return None
 
-
-
-def get_trivia(request):
-    if request.method == 'OPTIONS':  # Handle pre-flight requests
-        return add_cors_headers(jsonify({}))
-
+@cross_origin
+@app.route('/get_trivia', methods=['GET'])
+def get_trivia():
     try:
         category = request.args.get('filter[category]', None)
         difficulty = request.args.get('filter[difficulty]', None)
@@ -51,6 +47,7 @@ def get_trivia(request):
             if timeframe:
                 query= query.where('timeFrame', '==', int(timeframe))
             
+
             trivia_collection = db.collection('Trivia')
             query = query.stream()
 
@@ -67,28 +64,25 @@ def get_trivia(request):
             }
             results.append(result_data)
 
-        response = jsonify(results)
-        return add_cors_headers(response), 200
+        return add_cors_headers(jsonify(results)), 200
     except Exception as e:
         # Log the error and return a 503 Service Unavailable error
         print(str(e))
-        response = jsonify({'error': 'Service Unavailable'})
-        return add_cors_headers(response), 503
+        return add_cors_headers(jsonify({'error': 'Service Unavailable'})), 503
 
-
-def join_game(request):
-    if request.method == 'OPTIONS':  # Handle pre-flight requests
-        return add_cors_headers(jsonify({}))
+@cross_origin
+@app.route('/join_game', methods=['GET'])
+def join_game():
     try:
         email_id = request.json.get('emailId')
         trivia_id = request.json.get('triviaId')
 
         if not email_id or not trivia_id:
             # Return a 400 Bad Request error if emailId or triviaId is missing
-            response = jsonify({'error': 'Both emailId and triviaId parameters are required.'})
-            return add_cors_headers(response), 400
+            return {'error': 'Both emailId and triviaId parameters are required.'}, 400
 
         # Check if the 'active-games' collection exists, and create it if not present
+
 
         active_games_collection = db.collection('active-games')
 
@@ -105,9 +99,8 @@ def join_game(request):
                 game_data = game_doc.to_dict()
                 participant_emails = game_data.get('participantEmails', [])
                 if email_id in participant_emails:
-                    response = jsonify({'message': 'Email already registered.', 'gameId': game_doc.id})
-                    return add_cors_headers(response), 200
-                
+                    return jsonify({'message': 'Email already registered.', 'gameId': game_doc.id}), 200
+               
                 participant_emails.append(email_id)
                 game_data['participantEmails'] = participant_emails
                 active_games_collection.document(game_doc.id).update(game_data)
@@ -115,53 +108,49 @@ def join_game(request):
                 # Log the join game activity
                 logging.info(f"Added participant {email_id} to existing game {game_doc.id}")
 
-                response = jsonify({'message': 'Successfully joined the game.', 'gameId': game_doc.id})
-                return add_cors_headers(response), 200
-        
+                return jsonify({'message': 'Successfully joined the game.', 'gameId': game_doc.id}), 200
         trivia_data = get_document_by_id('Trivia',trivia_id)
         if trivia_data:
-            game_data = {
-                'gameId': game_id,
-                'triviaId': trivia_id,
-                'timeFrames':trivia_data.get('timeFrames') ,  # Set the appropriate value for time frames
-                'startTimestamp': format_timestamp(start_timestamp),
-                'isStarted': False,
-                'participantEmails': [email_id],
-                'participantTeams': [],
-            }
+                game_data = {
+                    'gameId': game_id,
+                    'triviaId': trivia_id,
+                    'timeFrames':trivia_data.get('timeFrames') ,  # Set the appropriate value for time frames
+                    'startTimestamp': format_timestamp(start_timestamp),
+                    'isStarted': False,
+                    'participantEmails': [email_id],
+                    'participantTeams': [],
 
-            active_games_collection.document(game_id).set(game_data)
+                }
 
-            # Log the join game activity
-            logging.info(f"Created new game {game_id} with participant {email_id}")
+                active_games_collection.document(game_id).set(game_data)
 
-            response = jsonify({'message': 'Successfully joined the game.', 'gameId': game_id})
-            return add_cors_headers(response), 200
+                # Log the join game activity
+                logging.info(f"Created new game {game_id} with participant {email_id}")
+
+                return jsonify({'message': 'Successfully joined the game.', 'gameId': game_id}), 200
         else:
             # Return a 404 Not Found error if the trivia with the provided triviaId is not found
-            response = jsonify({'error': 'Trivia not found.'})
-            return add_cors_headers(response), 404
+            return jsonify({'error': 'Trivia not found.'}), 404
 
     except Exception as e:
         # Log the error and return a 503 Service Unavailable error
         logging.error(str(e))
-        response = jsonify({'error': 'Service Unavailable'})
-        return add_cors_headers(response), 503
+        return jsonify({'error': 'Service Unavailable'}), 503
 
-
-def join_game_as_team(request):
-    if request.method == 'OPTIONS':  # Handle pre-flight requests
-        return add_cors_headers(jsonify({}))
+@cross_origin
+@cross_origin
+@app.route('/join_game_as_team', methods=['POST'])
+def join_game_as_team():
     try:
         team_name = request.json.get('teamName')
         trivia_id = request.json.get('triviaId')
 
         if not team_name or not trivia_id:
             # Return a 400 Bad Request error if emailId or triviaId is missing
-            response = jsonify({'error': 'Both teamName and triviaId parameters are required.'})
-            return add_cors_headers(response), 400
+            return jsonify({'error': 'Both teamName and triviaId parameters are required.'}), 400
 
         # Check if the 'active-games' collection exists, and create it if not present
+
 
         active_games_collection = db.collection('active-games')
 
@@ -178,9 +167,8 @@ def join_game_as_team(request):
                 game_data = game_doc.to_dict()
                 participant_teams = game_data.get('participantTeams', [])
                 if team_name in participant_teams:
-                    response = jsonify({'message': 'Team already registered.', 'gameId': game_doc.id})
-                    return add_cors_headers(response), 200
-                
+                    return jsonify({'message': 'team already registered.', 'gameId': game_doc.id}), 200
+               
                 participant_teams.append(team_name)
                 game_data['participantTeams'] = participant_teams
                 active_games_collection.document(game_doc.id).update(game_data)
@@ -188,44 +176,41 @@ def join_game_as_team(request):
                 # Log the join game activity
                 logging.info(f"Added team {team_name} to existing game {game_doc.id}")
 
-                response = jsonify({'message': 'Successfully joined the game.', 'gameId': game_doc.id})
-                return add_cors_headers(response), 200
+                return jsonify({'message': 'Successfully joined the game.', 'gameId': game_doc.id}), 200
 
         trivia_data = get_document_by_id('Trivia',trivia_id)
         if trivia_data:
-            # Create a new game document in the active-games collection
-            game_data = {
-                'gameId': game_id,
-                'triviaId': trivia_id,
-                'timeFrames':trivia_data.get('timeFrames') ,  # Set the appropriate value for time frames
-                'startTimestamp': format_timestamp(start_timestamp),
-                'isStarted': False,
-                'participantTeams': [team_name],
-                'participantEmails':[],
-            }
+                # Create a new game document in the active-games collection
+                game_data = {
+                    'gameId': game_id,
+                    'triviaId': trivia_id,
+                    'timeFrames':trivia_data.get('timeFrames') ,  # Set the appropriate value for time frames
+                    'startTimestamp': format_timestamp(start_timestamp),
+                    'isStarted': False,
+                    'participantTeams': [team_name],
+                    'participantEmails':[]
 
-            active_games_collection.document(game_id).set(game_data)
+                }
 
-            # Log the join game activity
-            logging.info(f"Created new game {game_id} with team {team_name}")
+                active_games_collection.document(game_id).set(game_data)
 
-            response = jsonify({'message': 'Successfully joined the game.', 'gameId': game_id})
-            return add_cors_headers(response), 200
+                # Log the join game activity
+                logging.info(f"Created new game {game_id} with team {team_name}")
+
+                return jsonify({'message': 'Successfully joined the game.', 'gameId': game_id}), 200
         else:
             # Return a 404 Not Found error if the trivia with the provided triviaId is not found
-            response = jsonify({'error': 'Trivia not found.'})
-            return add_cors_headers(response), 404
+            return jsonify({'error': 'Trivia not found.'}), 404
 
     except Exception as e:
         # Log the error and return a 503 Service Unavailable error
         logging.error(str(e))
-        response = jsonify({'error': 'Service Unavailable'})
-        return add_cors_headers(response), 503
+        return jsonify({'error': 'Service Unavailable'}), 503
 
+@cross_origin
+@app.route('/active_game', methods=['GET'])
+def active_games():
 
-def active_games(request):
-    if request.method == 'OPTIONS':  # Handle pre-flight requests
-        return add_cors_headers(jsonify({}))
     try:
         games=[]
         query = db.collection('active-games').stream()
@@ -243,7 +228,7 @@ def active_games(request):
                         'categoryName': trivia_data.get('category', ''),
                         'difficultyLevel': trivia_data.get('difficultyLevel', ''),
                         'timeFrame': trivia_data.get('timeframe', 0),
-                        'shortDescription': trivia_data.get('shortDescription', ''),
+                        'shortDescription': trivia_data.get('shortDescription', '')
                         }
                         is_game_started,time_remaining,is_game_ended=get_remaining_time(parse_timestamp(game_data['startTimestamp']),trivia_data.get('timeframe', 0))
                         game_resp = {
@@ -253,32 +238,27 @@ def active_games(request):
                             'isGameStarted': is_game_started,
                             'isGameEnded':is_game_ended,
                             'participantEmails': game_data.get('participantEmails'),
-                            'participantTeams': game_data.get('participantTeams'),
+                            'participantTeams': game_data.get('participantTeams')
 
                         }
                         games.append(game_resp)
-        response = jsonify({'games': games})
-        return add_cors_headers(response), 200
+        return add_cors_headers(jsonify({'games': games})), 200
     except Exception as e:
         # Log the error and return a 503 Service Unavailable error
         logging.error(str(e))
-        response = jsonify({'error': 'Service Unavailable'})
-        return add_cors_headers(response), 503
+        return add_cors_headers(jsonify({'error': 'Service Unavailable'})), 503
 
 
-
-def get_game_details_by_id(request):
-    if request.method == 'OPTIONS':  # Handle pre-flight requests
-        return add_cors_headers(jsonify({}))
+@cross_origin
+@app.route('/get_game_details_by_id', methods=['GET'])
+def get_game_details_by_id():
     email_id = request.json.get('emailId')
     game_id = request.json.get('gameId')
     team_name = request.json.get('teamName')
 
     if not (email_id or team_name)  or not game_id:
         # Return a 400 Bad Request error if emailId or triviaId is missing
-        response = jsonify({'error': 'Both emailId and gameId parameters are required.'})
-        return add_cors_headers(response), 400
-
+        return jsonify({'error': 'Both emailId and gameId parameters are required.'}), 400
     try:
         active_games_collection = db.collection('active-games')
         existing_games = active_games_collection.where('gameId', '==', game_id).limit(1).stream()
@@ -289,8 +269,7 @@ def get_game_details_by_id(request):
                 participant_emails = game_data.get('participantEmails', [])
                 participant_teams = game_data.get('participantTeams', [])
                 if (email_id not in participant_emails) and (team_name not in participant_teams):
-                    response = jsonify({'message': 'Please sign up for the game to play.'})
-                    return add_cors_headers(response), 400
+                    return jsonify({'message': 'Please signup for the game to play.'}), 400
                 
                 trivia_id = game_data.get('triviaId')
                 trivia_data = get_document_by_id('Trivia',trivia_id)
@@ -331,13 +310,13 @@ def get_game_details_by_id(request):
 
                 }
 
-        response = jsonify(game_resp)
-        return add_cors_headers(response), 200
+
+
+        return jsonify(game_resp), 200
     except Exception as e:
         # Log the error and return a 503 Service Unavailable error
         logging.error(str(e))
-        response = jsonify({'error': 'Service Unavailable'})
-        return add_cors_headers(response), 503
+        return jsonify({'error': 'Service Unavailable'}), 503
 
 def format_timestamp(timestamp):
     # Format the timestamp to the desired format
@@ -368,3 +347,6 @@ def get_remaining_time(startTimestamp,timeFrame):
         time_remaining_string = f"{minutes:02d}:{seconds:02d}"
     return is_game_started,time_remaining_string,is_game_ended
 
+# Run the Flask app
+if __name__ == '__main__':
+    app.run(debug=True)

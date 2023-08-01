@@ -37,4 +37,10 @@ functions:
     events:
       - http: active-game-details
         method: GET
+  
+  activeGameDetailsById:
+    handler: get_game_details_by_id
+    events:
+      - http: get-game-details-by-id
+        method: GET
           
