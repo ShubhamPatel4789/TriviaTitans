@@ -99,7 +99,7 @@ def join_game(request):
         start_timestamp = datetime.now() + timedelta(minutes=10)
 
         # Check if the game already exists
-        existing_games = active_games_collection.where('triviaId', '==', trivia_id).limit(1).stream()
+        existing_games = active_games_collection.where('triviaId', '==', trivia_id).where('gameEnded', '==', False).limit(1).stream()
         if existing_games:
             for game_doc in existing_games:
                 game_data = game_doc.to_dict()
@@ -123,11 +123,13 @@ def join_game(request):
             game_data = {
                 'gameId': game_id,
                 'triviaId': trivia_id,
-                'timeFrames':trivia_data.get('timeFrames') ,  # Set the appropriate value for time frames
+                'timeFrames':trivia_data.get('timeframe') ,  # Set the appropriate value for time frames
                 'startTimestamp': format_timestamp(start_timestamp),
                 'isStarted': False,
                 'participantEmails': [email_id],
                 'participantTeams': [],
+                'gameEnded':False,
+                'category':trivia_data.get('category')
             }
 
             active_games_collection.document(game_id).set(game_data)
@@ -141,6 +143,36 @@ def join_game(request):
             # Return a 404 Not Found error if the trivia with the provided triviaId is not found
             response = jsonify({'error': 'Trivia not found.'})
             return add_cors_headers(response), 404
+
+    except Exception as e:
+        # Log the error and return a 503 Service Unavailable error
+        logging.error(str(e))
+        response = jsonify({'error': 'Service Unavailable'})
+        return add_cors_headers(response), 503
+
+
+
+def update_game_status(request):
+    if request.method == 'OPTIONS':  # Handle pre-flight requests
+        return add_cors_headers(jsonify({}))
+    try:
+        game_id = request.json.get('gameId')
+        game_ended=request.json.get('gameEnded')
+
+        if not game_id or not game_ended:
+            # Return a 400 Bad Request error if emailId or triviaId is missing
+            response = jsonify({'error': 'Both game_id and game_ended parameters are required.'})
+            return add_cors_headers(response), 400
+
+        # Check if the 'active-games' collection exists, and create it if not present
+        active_games_collection = db.collection('active-games')
+        existing_games = active_games_collection.where('gameId', '==', game_id).limit(1).stream()
+        if existing_games:
+            for game_doc in existing_games:
+                game_data = game_doc.to_dict()
+                game_data['gameEnded'] = game_ended
+                active_games_collection.document(game_doc.id).update(game_data)
+        return "",204
 
     except Exception as e:
         # Log the error and return a 503 Service Unavailable error
@@ -172,7 +204,7 @@ def join_game_as_team(request):
         start_timestamp = datetime.now() + timedelta(minutes=10)
 
         # Check if the game already exists
-        existing_games = active_games_collection.where('triviaId', '==', trivia_id).limit(1).stream()
+        existing_games = active_games_collection.where('triviaId', '==', trivia_id).where("gameEnded","==",False).limit(1).stream()
         if existing_games:
             for game_doc in existing_games:
                 game_data = game_doc.to_dict()
@@ -197,11 +229,13 @@ def join_game_as_team(request):
             game_data = {
                 'gameId': game_id,
                 'triviaId': trivia_id,
-                'timeFrames':trivia_data.get('timeFrames') ,  # Set the appropriate value for time frames
+                'timeFrames':trivia_data.get('timeframe') ,  # Set the appropriate value for time frames
                 'startTimestamp': format_timestamp(start_timestamp),
                 'isStarted': False,
                 'participantTeams': [team_name],
                 'participantEmails':[],
+                'gameEnded':False,
+                'category':trivia_data.get('category')
             }
 
             active_games_collection.document(game_id).set(game_data)
@@ -228,7 +262,7 @@ def active_games(request):
         return add_cors_headers(jsonify({}))
     try:
         games=[]
-        query = db.collection('active-games').stream()
+        query = db.collection('active-games').where("gameEnded","==",False).stream()
         if query:
             for game_doc in query:
                 game_data = game_doc.to_dict()

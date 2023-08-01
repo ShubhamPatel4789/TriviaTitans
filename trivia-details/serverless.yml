@@ -43,4 +43,9 @@ functions:
     events:
       - http: get-game-details-by-id
         method: GET
+  updateGameStatus:
+    handler: update_game_status
+    events:
+      - http: update_game_status
+        method: POST
           
