@@ -45,11 +45,11 @@ def get_trivia(request):
             query = query.stream()
         else:
             if category:
-               query= query.where('categoryName', '==', category)
+               query= query.where('category', '==', category)
             if difficulty:
                 query= query.where('difficultyLevel', '==', difficulty)
             if timeframe:
-                query= query.where('timeFrame', '==', int(timeframe))
+                query= query.where('timeframe', '==', int(timeframe))
             
             trivia_collection = db.collection('Trivia')
             query = query.stream()
