@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import firebase from 'firebase/compat/app';
 import 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import AWS from 'aws-sdk';
