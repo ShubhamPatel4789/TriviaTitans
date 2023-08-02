@@ -126,6 +126,8 @@ const TriviaGamePage = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const emailId = localStorage.getItem('email');
+  const [isGameOverForAll, setIsGameOverForAll] = useState(false);
+  const [podiumPlaces, setPodiumPlaces] = useState([]);
 
 
   let teamDetails={isPartOfTeam:true,
@@ -314,7 +316,7 @@ const TriviaGamePage = () => {
 
 
     // Function to update the score on the server
-const updateScoreOnServer = async (email, teamName,correctAnswer, answered, currentQuestion) => {
+const updateScoreOnServer = async (email, teamName,correctAnswer, answered, currentQuestion,isGameOver) => {
       let body=""
       if(isTeamGame){
         body=JSON.stringify({
@@ -323,6 +325,7 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
           correctAnswer,
           answered,
           currentQuestion,
+          isGameOver
         })
       }
       else{
@@ -332,6 +335,7 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
           correctAnswer,
           answered,
           currentQuestion,
+          isGameOver
         })
         
       }
@@ -368,7 +372,12 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
 
             if (isAnsweringAllowed){
             handleEvaluate();
-            updateScoreOnServer(emailId,teamName, false, false, currentQuestion);
+            if (currentQuestion >= gameData.trivia.questions.length - 1) {
+              updateScoreOnServer(emailId,teamName, false, false, currentQuestion,true);
+            }else{
+              updateScoreOnServer(emailId,teamName, false, false, currentQuestion,false);
+            }
+
             }
 
               
@@ -402,8 +411,8 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
         }
 
         const data = await response.json();
-        setTeamScore(data.teamScore || {});
-        setIndividualScore(data.individualScore || {});
+        setTeamScore(data.score.teamScore || {});
+        setIndividualScore(data.score.individualScore || {});
       } catch (error) {
         // Handle any other errors that may occur during the fetch
         console.error('Error fetching scores:', error);
@@ -421,11 +430,17 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
       try {
         sleep(2000);
         const data = JSON.parse(event.data);
-        if (data.teamScore) {
-          setTeamScore(data.teamScore);
+        if (data.score.teamScore) {
+          setTeamScore(data.score.teamScore);
         }
-        if (data.individualScore) {
-          setIndividualScore(data.individualScore);
+        if (data.score.individualScore) {
+          setIndividualScore(data.score.individualScore);
+        }
+        if (data.isGameOver && data.podiumPlaces.length>0){
+          setPodiumPlaces(data.podiumPlaces)
+          setIsGameOverForAll(data.isGameOver)
+
+          console.log(data.podiumPlaces)
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
@@ -460,6 +475,7 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
     if (currentQuestion < gameData.trivia.questions.length - 1) {
       setCurrentQuestion((prevQuestion) => prevQuestion + 1);
     } else {
+
       setGameEnded(true)
       
     }
@@ -478,7 +494,12 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
       setShowAnswer(true);
       if (option!=null){
         // Call the updateScoreOnServer function with the necessary parameters
-        updateScoreOnServer(emailId, teamName,isCorrectAnswer, true, currentQuestion);
+        if (currentQuestion >= gameData.trivia.questions.length - 1) {
+          updateScoreOnServer(emailId, teamName,isCorrectAnswer, true, currentQuestion,true);
+        }else{
+          updateScoreOnServer(emailId, teamName,isCorrectAnswer, true, currentQuestion,false);
+        }
+
       }
 
     }
@@ -497,7 +518,7 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
 
     return (
       <div>
-        <Typography variant="h6">Scores</Typography>
+        <Typography variant="h6">Current Scores</Typography>
         {combinedScores.map((entry, index) => (
           <Typography key={index} variant="body1">
             {`${entry.isTeam ? 'Team' : 'Individual'}: ${entry.name} - Score: ${entry.score}`}
@@ -569,6 +590,64 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
   }
 
 
+const Podium = () => {
+  return (
+    <>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <Typography variant="h4" style={{ marginBottom: '20px' }}>
+            Game Over
+          </Typography>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            {/* First Place */}
+            <div style={{ textAlign: 'center' }}>
+              <Typography variant="h5" style={{ fontWeight: 'bold' }}>
+                Winner
+              </Typography>
+              <Typography variant="h4" style={{ fontWeight: 'bold' }}>
+                {podiumPlaces[0].participant}
+              </Typography>
+              <Typography variant="h5" style={{ fontWeight: 'bold' }}>
+                Score: {podiumPlaces[0].score}
+              </Typography>
+            </div>
+
+            {/* Second Place */}
+            <div style={{ textAlign: 'center', marginLeft: '50px' }}>
+              <Typography variant="h5" style={{ fontWeight: 'bold' }}>
+                Second Place
+              </Typography>
+              <Typography variant="h4" style={{ fontWeight: 'bold' }}>
+                {podiumPlaces[1].participant}
+              </Typography>
+              <Typography variant="h5" style={{ fontWeight: 'bold' }}>
+                Score: {podiumPlaces[1].score}
+              </Typography>
+            </div>
+
+            {/* Third Place */}
+            {podiumPlaces.length >= 3 && (
+              <div style={{ textAlign: 'center', marginLeft: '50px' }}>
+                <Typography variant="h5" style={{ fontWeight: 'bold' }}>
+                  Third Place
+                </Typography>
+                <Typography variant="h4" style={{ fontWeight: 'bold' }}>
+                  {podiumPlaces[2].participant}
+                </Typography>
+                <Typography variant="h5" style={{ fontWeight: 'bold' }}>
+                  Score: {podiumPlaces[2].score}
+                </Typography>
+              </div>
+            )}
+          </div>
+        </div>
+
+    </>
+  );
+};
+
+
+
+
   const currentQuestionData = gameData?.trivia?.questions[currentQuestion];
   const currentUserScore = isTeamGame ? teamScore[teamName] : individualScore[emailId];
 
@@ -597,13 +676,23 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
              </div>
       )}
 
-      {gameEnded &&  (
+      {gameEnded && !isGameOverForAll &&  (
       <div>
-                <Typography variant="h4" >
-                Game Over
-              </Typography>
+          <Typography variant="h4" style={{ marginBottom: '10px' }}>
+            Game Over
+          </Typography>
+          <Typography variant="subtitle1" style={{ marginBottom: '20px' }}>
+            Please wait for all players to complete the game.
+          </Typography>
       {renderScoreTable()}
       
+      </div>
+
+      )}
+
+    {gameEnded && isGameOverForAll &&  (
+      <div>
+          {Podium()}
       </div>
 
       )}
