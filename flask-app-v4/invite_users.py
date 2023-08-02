@@ -5,13 +5,13 @@ vikramvenkatapathi@gmail.com
 
 from flask import Flask, jsonify, request, Blueprint
 import boto3
-# from botocore.exceptions import NoCredentialsError
+from botocore.exceptions import NoCredentialsError
 import json
 app = Flask(__name__)
 
-invite_users_app_v3 = Blueprint('invite_users_app_v3', __name__)
+invite_users_app = Blueprint('invite_users_app', __name__)
 
-@invite_users_app_v3.after_request
+@invite_users_app.after_request
 def add_headers(response):
     response.headers.add("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers")
     return response
@@ -23,7 +23,7 @@ table_name = "Teams"
 sns = boto3.client('sns')
 
 topic_arn = "arn:aws:sns:us-east-1:000966082997:TeamInvitationV3"
-@invite_users_app_v3.route("/invite-users/<teamName>",methods=["POST"])
+@invite_users_app.route("/invite-users/<teamName>",methods=["POST"])
 def invite_users(teamName):
     
     response = send_invitations(teamName)

@@ -32,3 +32,6 @@ def hello():
 @app.errorhandler(404)
 def resource_not_found(e):
     return make_response(jsonify(error='Not found!'), 404)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)

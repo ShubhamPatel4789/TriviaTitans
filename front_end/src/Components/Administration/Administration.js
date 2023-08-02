@@ -11,7 +11,7 @@ const Administration = () => {
   
   // const apiURL = `https://w7b2jmg6rc.execute-api.us-east-1.amazonaws.com`;
   
-  const apiURL = `https://xiayg5tk76.execute-api.us-east-1.amazonaws.com`;
+  const apiURL = `https://8qv04lo2b2.execute-api.us-east-1.amazonaws.com`;
   // const apiURL = `http://localhost:5000`;
   
 

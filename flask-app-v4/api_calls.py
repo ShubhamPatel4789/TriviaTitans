@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, Blueprint
 import boto3
+from botocore.exceptions import NoCredentialsError
 import json
 app = Flask(__name__)
 
@@ -17,7 +18,7 @@ table_name = "Teams"
 # Initialize the AWS Lambda client
 lambda_client = boto3.client('lambda')
 
-@api_calls_app.route("/get-current-members/<teamName>",methods=["POST"])
+@api_calls_app.route("/get-current-members/<teamName>", methods=["POST"])
 def get_team_members(teamName):
     table = dynamodb.Table(table_name)
     
@@ -27,15 +28,12 @@ def get_team_members(teamName):
         ExpressionAttributeValues={':team_name': teamName}
     )
     
-    # print(response['Items']['CurrentMembers'])
     items = response['Items']
-    # print(items)
-    # currentMembers = items['CurrentMembers']
     if items:
         team_members = items[0].get('CurrentMembers', [])  # Use an empty list as the default if 'CurrentMembers' not found
-        print(f"Return Team members of {teamName}:",team_members)
-        return team_members
-    return []
+        print(f"Return Team members of {teamName}:", team_members)
+        return jsonify(team_members)  # Convert the list to a JSON response
+    return jsonify([])  # Return an empty JSON response if no team members found
 
 @api_calls_app.route("/get-team-details",methods=["POST"])
 def fetch_team_details():
@@ -173,6 +171,29 @@ def get_admin():
             'body': json.dumps({'error': str(e)})
         }
     
+# def call_get_admin(team_name):
+#     api_url = "http://localhost:5000/get-admin"
+#     headers = {
+#         "Content-Type": "application/json"
+#     }
+
+#     # Prepare the request data as JSON
+#     data = {
+#         "team_name": team_name
+#     }
+
+#     # Make the HTTP POST request to the /get-admin route
+#     response = requests.post(api_url, headers=headers, json=data)
+
+#     if response.status_code == 200:
+#         admin_data = response.json()
+#         admin_email = admin_data.get("admin_email")
+#         print(f"Admin Email for team {team_name}: {admin_email}")
+#         return admin_email, 200
+#     else:
+#         print(f"Failed to get admin for team {team_name}. Status Code: {response.status_code}")
+
+
 @api_calls_app.route("/leave-team", methods=["POST"])
 def leave_team():
     try:
@@ -199,4 +220,28 @@ def leave_team():
             'statusCode': 500,
             'body': json.dumps({'error': str(e)})
         }
+# @api_calls_app.route("/leave-team", methods=["POST"])
+# def leave_team():
+#     data = request.get_json()
+
+#     if not data or "email" not in data:
+#         return jsonify({"message": "Invalid request. Email not provided."}), 400
+
+#     email = data["email"]
+
+#     # Check if the email is the admin
+#     admin_response = get_admin()
+#     if admin_response.status_code == 200:
+#         admin_data = admin_response.json()
+#         if admin_data["admin_email"] == email:
+#             return jsonify({"message": "You are the admin and cannot leave the team."}), 400
+
+#     # Remove the member from the team
+#     remove_member_response = remove_member(email)
+#     if remove_member_response.status_code == 200:
+#         return jsonify({"message": f"Successfully left the team."}), 200
+#     elif remove_member_response.status_code == 400:
+#         return jsonify({"message": "User not found in CurrentMembers for the team."}), 400
+#     else:
+#         return jsonify({"message": "Failed to leave the team."}), 500
 
