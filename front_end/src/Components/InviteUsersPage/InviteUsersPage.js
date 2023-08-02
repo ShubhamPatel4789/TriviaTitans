@@ -8,8 +8,10 @@ const InviteUsersPage = () => {
   const [email, setEmail] = useState('');
   const [emailList, setEmailList] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
+  
   // const invite_users_URL = `https://w7b2jmg6rc.execute-api.us-east-1.amazonaws.com/invite-users/${teamName}`;
-  const invite_users_URL = `http://localhost:5000/invite-users/${teamName}`;
+  const invite_users_URL = `https://xiayg5tk76.execute-api.us-east-1.amazonaws.com/invite-users/${teamName}`;
+  // const invite_users_URL = `http://localhost:5000/invite-users/${teamName}`;
   const handleAddEmail = () => {
     if (validateEmail(email)) {
       setEmailList([...emailList, email]);

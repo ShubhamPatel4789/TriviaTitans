@@ -7,15 +7,16 @@ const LandingPage = () => {
   const [generatedName, setGeneratedName] = useState('');
   const [confirmedName, setConfirmedName] = useState('');
   const navigate = useNavigate();
-  const generate_name_URL = "https://w7b2jmg6rc.execute-api.us-east-1.amazonaws.com//generate-team-name";
+  // const generate_name_URL = "https://w7b2jmg6rc.execute-api.us-east-1.amazonaws.com/generate-team-name";
+  // const generate_name_URL = `https://8qv04lo2b2.execute-api.us-east-1.amazonaws.com/generate-team-name`;
   // const generate_name_URL = "http://localhost:5000/generate-team-name";
-
+  const apiURL = `https://8qv04lo2b2.execute-api.us-east-1.amazonaws.com`;
   const handleGenerateName = async () => {
     try {
       let tries = 0;
       let generated = false;
       while (tries < 3 && !generated) {
-        const response = await fetch(generate_name_URL, {
+        const response = await fetch(`${apiURL}/generate-team-name`, {
           method: 'POST',
         });
         if (response.ok) {
@@ -41,10 +42,10 @@ const LandingPage = () => {
 
 
   const handleConfirmName = async () => {
-    const confirm_name_URL = "https://w7b2jmg6rc.execute-api.us-east-1.amazonaws.com/confirm-team-name";
+    // const confirm_name_URL = "https://w7b2jmg6rc.execute-api.us-east-1.amazonaws.com/confirm-team-name";
     // const confirm_name_URL = "http://localhost:5000/confirm-team-name";
     try {
-      const response = await fetch(confirm_name_URL, {
+      const response = await fetch(`${apiURL}/confirm-team-name`, {
         method: 'POST',
         body: JSON.stringify({ teamName: generatedName }),
         headers: {

@@ -1,8 +1,8 @@
 # Ignore all files inside the node_modules folder
-flask-app-v2/node_modules/*
+flask-app-v4/node_modules/*
 
 # Ignore all files inside the __pycache__ folder
-flask-app-v2/__pycache__/*
+flask-app-v4/__pycache__/*
 
 # Ignore all files inside the .serverless folder
-flask-app-v2/.serverless/*
+flask-app-v4/.serverless/*

@@ -9,8 +9,11 @@ const Administration = () => {
   const [admin, setAdmin] = useState('');
   const [logged_in_user_email, setlogged_in_user_email] = useState('');
   
-
-  const apiURL = `http://localhost:5000`;
+  // const apiURL = `https://w7b2jmg6rc.execute-api.us-east-1.amazonaws.com`;
+  
+  const apiURL = `https://xiayg5tk76.execute-api.us-east-1.amazonaws.com`;
+  // const apiURL = `http://localhost:5000`;
+  
 
   // Function to fetch admin information based on the teamName
   const fetchAdmin = useCallback(async (teamName) => {
