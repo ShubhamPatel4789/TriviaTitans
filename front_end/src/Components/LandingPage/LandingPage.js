@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate  } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import './LandingPage.css';
 
@@ -7,6 +8,8 @@ const LandingPage = () => {
   const [generatedName, setGeneratedName] = useState('');
   const [confirmedName, setConfirmedName] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const userId = location.state?.userId;
   const generate_name_URL = "https://w7b2jmg6rc.execute-api.us-east-1.amazonaws.com//generate-team-name";
   // const generate_name_URL = "http://localhost:5000/generate-team-name";
 
@@ -52,7 +55,7 @@ const LandingPage = () => {
         },
       });
       if (response.ok) {
-        console.log("Confirmed name",generatedName )
+        console.log("Confirmed name", generatedName)
         setConfirmedName(generatedName);
       } else {
         console.error('Error:', response.status);
@@ -65,6 +68,15 @@ const LandingPage = () => {
     navigate(`/invite-users/${generatedName}`); // Navigate to the "Invite" page
   };
 
+  const changeUserdetails = () => {
+    navigate("/userdetials", { state: { userId: userId } }); 
+  };
+
+  const changeUserstats = () => {
+    navigate("/userstats", { state: { userId: userId } }); 
+  };
+
+
   return (
     <div>
       <h1>Team Management</h1>
@@ -75,8 +87,12 @@ const LandingPage = () => {
         Confirm
       </button>
       {confirmedName && <p>Confirmed Name: {confirmedName}</p>}
-      <br/><br/><br/>
+      <br /><br /><br />
       <button onClick={handleInviteUsers}>Invite Users</button>
+      <h1>User Profile</h1>
+      <button onClick={changeUserdetails}>Edit User Profile</button>
+      <h1>User Stats</h1>
+      <button onClick={changeUserstats}>User Statistics</button>
     </div>
   );
 };

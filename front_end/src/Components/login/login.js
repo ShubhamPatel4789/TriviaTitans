@@ -78,6 +78,7 @@ const Login = () => {
             });
     };
 
+    
     // const handleFacebookLoginSuccess = async (response) => {
     //     // Sign in the user with Facebook
     //     const credential = firebase.auth.FacebookAuthProvider.credential(response.accessToken);
@@ -129,20 +130,11 @@ const Login = () => {
                 onClick={handleGoogleLogin}
                 className="google-login-button"
             >
-                Login with Google
+                Continue with Google
             </button>
 
-
-            {/* Facebook Login */}
-            {/* <FacebookLogin
-                appId="6444597895621328"
-                fields="name,email,picture"
-                callback={handleFacebookLoginSuccess}
-                onFailure={handleFacebookLoginFailure}
-                cssClass="facebook-login-button"
-                textButton="Login with Facebook"
-                icon="fa-facebook"
-            /> */}
+            {/* Registration Link */}
+            <p>Don't have an account? <a href="/register">Register here</a></p>
         </div>
 
     );

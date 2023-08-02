@@ -11,6 +11,8 @@ import Login from './Components/login/login';
 import MultiFactorAuth from './Components/multiFactorAuthenticationPage/mfaauth';
 import SingleFactorAuth from './Components/multiFactorAuthenticationPage/loginauth';
 import AWS from 'aws-sdk';
+import EditProfile from './Components/userProfile/editUserProfile';
+import Userstats from './Components/userProfile/userstats';
 
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
@@ -18,9 +20,9 @@ if (!firebase.apps.length) {
 
 
 AWS.config.update({
-  accessKeyId: 'ASIAZSAR76KNQPTVMTM4',
-  secretAccessKey: 'dqabGJVE0mGRfziOddG3N/Cy/eacQjsJ1mPGOFCi',
-  sessionToken:'FwoGZXIvYXdzEEEaDJmA5qQFpBBi4tt0XSLAAexRUOUFiUfuXs9yU4NkC2OSglj1FGNieRx6u9A5KLO68qnTkht0iE3yZV2Prf1ABH8Bj+obx46K60vf5Wzlq9YoZLLc4wCU2VEDBpF6zaoTSkjcqSrEw2V5D2hX2vzEDLHeEvRB2ULHeFFACaSmViNO56PLfBvrPyArXAGTId7AnF6unlmK/XmKUEwxOfDsgIfx54OXTB3OdUk0Pic7sCcmvPZFwUAkb8b8YupNW4ycGjnUq9HPemZ78bQzQV5oFSjIiKGmBjIt7gV3DDlVyJsxffhL1mwEI9+5SzneNl/ChNo7Z94c1X4om8X4r8+8l4DFcHas',
+  accessKeyId: 'ASIAZSAR76KN7IE57LMF',
+  secretAccessKey: 'TaVZQRe9Y3SgIqGYqqKNwlu0u5L9WElCEWYLZ/7G',
+  sessionToken:'FwoGZXIvYXdzEFYaDHLWTEp8/OICaLYntiLAAVV20IqR/OaTzSwGW4j+4IYeGr3Fm51eY6GybTwxRuvGlc6UTy2ptvkRRLzVXHeg3h72ahE8dduGwNRMvn7q8RnRQql3BXso31cxqgkr2HAmxocICz+SBJy3EdY5wK9pZWM8hR8vQFlnkScggOchLHzx2NsDVXYk44uwfxWQeFkVhiD5n28/BXd2nL3LV6LHiv/R/4qX2YwYPOWWCPyZaXbBfy+pretbskon5hbcWD/eCyzMl3/vvC9BMunHgRptzCji0qWmBjItsObdMNph84UQee2c5qxy0b05igb31pOYtnvp1lST4c19YZntQMZrYsRZ3GRg',
   region: 'us-east-1'
 });
 
@@ -29,11 +31,13 @@ function App() {
     <div>
       <Router>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/landingpage" element={<LandingPage />} />
           <Route path="/register" element={<UserRegister />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Login />} />
           <Route path="/mfa" element={<MultiFactorAuth />} />
           <Route path="/loginmfa" element={<SingleFactorAuth />} />
+          <Route path="/userdetials" element={<EditProfile />} />
+          <Route path="/userstats" element={<Userstats />} />
           <Route path="/invite-users/:teamName" element={<InviteUsers />} />
         </Routes>
       </Router>

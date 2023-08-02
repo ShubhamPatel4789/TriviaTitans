@@ -39,7 +39,7 @@ const MultiFactorAuth = () => {
                 console.error('Error saving answers:', err);
             } else {
                 console.log('Answers saved to DynamoDB!');
-                navigate('/login');
+                navigate('/landingpage', { state: { userId: userId } });
             }
         });
 

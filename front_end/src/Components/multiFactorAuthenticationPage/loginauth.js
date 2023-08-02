@@ -39,7 +39,7 @@ const SingleFactorAuth = () => {
                 const response = JSON.parse(data.Payload);
                 if (response.isValidAnswer) {
                     setIsValidAnswer(true);
-                    navigate('/');
+                    navigate('/landingpage', { state: { userId: userId } });
                     // You can redirect to the desired page after successful validation
                     // For example, navigate("/dashboard");
                 } else {
