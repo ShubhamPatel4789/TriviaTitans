@@ -6,6 +6,7 @@ provider:
   stage: dev
   region: us-east-1
 
+
 resources:
   Resources:
     IndividualScoreTable:
@@ -43,6 +44,20 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+    PodiumPlacesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: podium-places
+        AttributeDefinitions:
+          - AttributeName: gameId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: gameId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
 
 functions:
   updateScore:

@@ -15,6 +15,7 @@ def update_score(event, context):
     correct_answer = body.get('correctAnswer')
     answered = body.get('answered')
     current_question = body.get('currentQuestion')
+    is_game_over = body.get('isGameOver')
 
     # Lambda function name to invoke
     function_name = "update-score-dev-fetchScore"
@@ -43,8 +44,8 @@ def update_score(event, context):
                 # Update individual score with timedOutAnswers and currentQuestion
                 individual_score_table.update_item(
                     Key={'email': email, 'gameId': game_id},
-                    UpdateExpression='SET timedOutAnswers = if_not_exists(timedOutAnswers, :zero) + :val, currentQuestion = :cq',
-                    ExpressionAttributeValues={':val': 1, ':zero': 0, ':cq': current_question},
+                    UpdateExpression='SET timedOutAnswers = if_not_exists(timedOutAnswers, :zero) + :val, currentQuestion = :cq, isGameOver = :is_game_over',
+                    ExpressionAttributeValues={':val': 1, ':zero': 0, ':cq': current_question,':is_game_over':is_game_over},
                     ReturnValues='UPDATED_NEW'
                 )
             else:
@@ -57,7 +58,8 @@ def update_score(event, context):
                         'timedOutAnswers': 1,
                         'correctAnswer': 0,
                         'incorrectAnswer': 0,
-                        'currentQuestion': current_question
+                        'currentQuestion': current_question,
+                        'isGameOver':is_game_over
                     }
                 )
         elif team_name:
@@ -66,8 +68,8 @@ def update_score(event, context):
                 # Update team score with timedOutAnswers and currentQuestion
                 team_score_table.update_item(
                     Key={'teamName': team_name, 'gameId': game_id},
-                    UpdateExpression='SET timedOutAnswers = if_not_exists(timedOutAnswers, :zero) + :val, currentQuestion = :cq',
-                    ExpressionAttributeValues={':val': 1, ':zero': 0, ':cq': current_question},
+                    UpdateExpression='SET timedOutAnswers = if_not_exists(timedOutAnswers, :zero) + :val, currentQuestion = :cq,, isGameOver = :is_game_over',
+                    ExpressionAttributeValues={':val': 1, ':zero': 0, ':cq': current_question,':is_game_over':is_game_over},
                     ReturnValues='UPDATED_NEW'
                 )
             else:
@@ -80,15 +82,16 @@ def update_score(event, context):
                         'timedOutAnswers': 1,
                         'correctAnswer': 0,
                         'incorrectAnswer': 0,
-                        'currentQuestion': current_question
+                        'currentQuestion': current_question,
+                        'isGameOver':is_game_over
                     }
                 )
     if email and correct_answer:
         if emailDocumentPresent:
             individual_score_table.update_item(
                 Key={'email': email, 'gameId': game_id},
-                UpdateExpression='SET currentScore = currentScore + :val, correctAnswer = correctAnswer + :counter, currentQuestion = :cq',
-                ExpressionAttributeValues={':val': 10, ':counter': 1,':cq': current_question},
+                UpdateExpression='SET currentScore = currentScore + :val, correctAnswer = correctAnswer + :counter, currentQuestion = :cq, isGameOver = :is_game_over',
+                ExpressionAttributeValues={':val': 10, ':counter': 1,':cq': current_question,':is_game_over':is_game_over},
                 ReturnValues='UPDATED_NEW'
             )
         else:
@@ -101,15 +104,16 @@ def update_score(event, context):
                         'timedOutAnswers': 0,
                         'correctAnswer': 1,
                         'incorrectAnswer': 0,
-                        'currentQuestion': current_question
+                        'currentQuestion': current_question,
+                        'isGameOver':is_game_over
                     }
                 )
     if team_name and correct_answer:
         if teamDocumentPresent:
             team_score_table.update_item(
                 Key={'teamName': team_name, 'gameId': game_id},
-                UpdateExpression='SET currentScore = currentScore + :val, correctAnswer = correctAnswer + :counter, currentQuestion = :cq',
-                ExpressionAttributeValues={':val': 10, ':counter': 1,':cq': current_question},
+                UpdateExpression='SET currentScore = currentScore + :val, correctAnswer = correctAnswer + :counter, currentQuestion = :cq, isGameOver = :is_game_over',
+                ExpressionAttributeValues={':val': 10, ':counter': 1,':cq': current_question,':is_game_over':is_game_over},
                 ReturnValues='UPDATED_NEW'
             )
         else:
@@ -122,9 +126,57 @@ def update_score(event, context):
                         'timedOutAnswers': 0,
                         'correctAnswer': 1,
                         'incorrectAnswer': 0,
-                        'currentQuestion': current_question
+                        'currentQuestion': current_question,
+                        'isGameOver':is_game_over
                     }
                 )
+    
+    if email and not correct_answer:
+        if emailDocumentPresent:
+            individual_score_table.update_item(
+                Key={'email': email, 'gameId': game_id},
+                UpdateExpression='SET  incorrectAnswer = incorrectAnswer + :counter, currentQuestion = :cq, isGameOver = :is_game_over',
+                ExpressionAttributeValues={ ':counter': 1,':cq': current_question,':is_game_over':is_game_over},
+                ReturnValues='UPDATED_NEW'
+            )
+        else:
+             # Insert a new document for individual score
+            individual_score_table.put_item(
+                    Item={
+                        'email': email,
+                        'gameId': game_id,
+                        'currentScore': 10,
+                        'timedOutAnswers': 0,
+                        'correctAnswer': 0,
+                        'incorrectAnswer': 1,
+                        'currentQuestion': current_question,
+                        'isGameOver':is_game_over
+                    }
+                )
+    if team_name and not correct_answer:
+        if teamDocumentPresent:
+            team_score_table.update_item(
+                Key={'teamName': team_name, 'gameId': game_id},
+                UpdateExpression='SET incorrectAnswer = incorrectAnswer + :counter, currentQuestion = :cq, isGameOver = :is_game_over',
+                ExpressionAttributeValues={':val': 10, ':counter': 1,':cq': current_question,':is_game_over':is_game_over},
+                ReturnValues='UPDATED_NEW'
+            )
+        else:
+             # Insert a new document for individual score
+            team_score_table.put_item(
+                    Item={
+                        'teamName': team_name,
+                        'gameId': game_id,
+                        'currentScore': 10,
+                        'timedOutAnswers': 0,
+                        'correctAnswer': 0,
+                        'incorrectAnswer': 1,
+                        'currentQuestion': current_question,
+                        'isGameOver':is_game_over
+                    }
+                )
+    
+    
     data = {
     'gameId':game_id
     }
