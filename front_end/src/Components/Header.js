@@ -22,9 +22,14 @@ const Header = () => {
                 <Button color="inherit" component={Link} to="/gameplay">
                     Gameplay
                 </Button>
-                
                 <Button color="inherit" component={Link} to="/teamManagement">
                     Team Management
+                </Button>
+                <Button color="inherit" component={Link} to="/userdetails">
+                    User Profile
+                </Button>
+                <Button color="inherit" component={Link} to="/userstats">
+                    User Statistics
                 </Button>
 
             </Toolbar>
