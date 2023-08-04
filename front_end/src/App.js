@@ -20,9 +20,9 @@ if (!firebase.apps.length) {
 
 
 AWS.config.update({
-  accessKeyId: 'ASIAZSAR76KN7IE57LMF',
-  secretAccessKey: 'TaVZQRe9Y3SgIqGYqqKNwlu0u5L9WElCEWYLZ/7G',
-  sessionToken:'FwoGZXIvYXdzEFYaDHLWTEp8/OICaLYntiLAAVV20IqR/OaTzSwGW4j+4IYeGr3Fm51eY6GybTwxRuvGlc6UTy2ptvkRRLzVXHeg3h72ahE8dduGwNRMvn7q8RnRQql3BXso31cxqgkr2HAmxocICz+SBJy3EdY5wK9pZWM8hR8vQFlnkScggOchLHzx2NsDVXYk44uwfxWQeFkVhiD5n28/BXd2nL3LV6LHiv/R/4qX2YwYPOWWCPyZaXbBfy+pretbskon5hbcWD/eCyzMl3/vvC9BMunHgRptzCji0qWmBjItsObdMNph84UQee2c5qxy0b05igb31pOYtnvp1lST4c19YZntQMZrYsRZ3GRg',
+  accessKeyId: 'ASIAZSAR76KNUSKCMY26',
+  secretAccessKey: 'zaFN3Hm7gnxN873cz0E7H9mQrhSWAUvzgJe2FWCY',
+  sessionToken:'FwoGZXIvYXdzEGcaDCpgZ5Q6hrYzsrnAgiLAAckfbeA1dylUuNIbZJhkTl2uI2bTSX6UuEFc70J3PV/DhdrOc/ibeNG08dLJm3mCh+Dubu/Jh91x4FN0n77Uwl6HPpuPlzua8Kw7Oy/nBOWjHIETLqJi5jNc4b7lgORPzm+J9KgOzleiuCGFQD+4uJgX/9LRn/3IFslPL+FGUhyMaGTxgHuqWFoUHSzeLp8OjpPXzROnhftx8ELFK3sNoEme2n8tCOwxP7eDg4VPzxeF56URAd5XuI+h3ol93a9XRyjBrKmmBjIti9y4DvPl9mDNwH2wj5G5nBJRS8cWRQC/8qEHJcnUh9GAAyeTSejiOIFn8c83',
   region: 'us-east-1'
 });
 

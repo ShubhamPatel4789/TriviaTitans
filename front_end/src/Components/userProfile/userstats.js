@@ -44,6 +44,7 @@ const Userstats = () => {
                             <TableCell>Games Played</TableCell>
                             <TableCell>Wins</TableCell>
                             <TableCell>Losses</TableCell>
+                            <TableCell>Wins/Loss ratio</TableCell>
                             <TableCell>Total Points</TableCell>
                             <TableCell>Team Affiliations</TableCell>
                             <TableCell>Achievements</TableCell>
@@ -55,6 +56,7 @@ const Userstats = () => {
                             <TableCell>{user.gamesPlayed}</TableCell>
                             <TableCell>{user.wins}</TableCell>
                             <TableCell>{user.losses}</TableCell>
+                            <TableCell>{(user.wins / user.losses).toFixed(2)}</TableCell>
                             <TableCell>{user.totalPoints}</TableCell>
                             <TableCell>{user.teamAffiliations.join(', ')}</TableCell>
                             <TableCell>{user.achievements.join(', ')}</TableCell>
