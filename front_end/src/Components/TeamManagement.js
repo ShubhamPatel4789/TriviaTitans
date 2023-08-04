@@ -1,0 +1,31 @@
+// HomePage.js
+import React from 'react';
+import { Link } from 'react-router-dom';
+import './CSS/TeamManagement.css'
+const HomePage = () => {
+  // const navigate = useNavigate();
+  // const navigateToAdministration = () => {
+  // const teamname = "";
+  // navigate(`/administration/${teamname}`); // Navigate to the "Invite" page
+    
+    // };
+  return (
+    <div>
+      <h1 align="center">Team Management</h1>
+      <div className="navigation-buttons">
+        <Link to="/landing-page">
+          <button>Generate a Team </button>
+        </Link>
+        <Link to="/teamStatistics">
+          <button>View Team Stats</button>
+        </Link>
+        <Link to="/administration">
+          {/* <button onClick={navigateToAdministration} >Administration</button> */}
+          <button>Administration</button>
+        </Link>
+      </div>
+    </div>
+  );
+};
+
+export default HomePage;

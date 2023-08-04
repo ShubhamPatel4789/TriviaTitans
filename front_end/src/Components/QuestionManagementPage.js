@@ -88,7 +88,7 @@ const QuestionManagementPage = () => {
 
     const fetchQuestions = async () => {
         try {
-            const response = await axios.get('https://us-east1-serverless-389521.cloudfunctions.net/getAllQuestions');
+            const response = await axios.get('https://us-east1-sdp17-392601.cloudfunctions.net/getAllQuestions');
             setQuestions(response.data.questions);
         } catch (error) {
             console.log(error);
@@ -97,7 +97,7 @@ const QuestionManagementPage = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get('https://us-east1-serverless-389521.cloudfunctions.net/getAllCategories');
+            const response = await axios.get('https://us-east1-sdp17-392601.cloudfunctions.net/getAllCategories');
             setCategories(response.data.categories);
         } catch (error) {
             console.log(error);
@@ -160,7 +160,7 @@ const QuestionManagementPage = () => {
         };
 
         try {
-            await axios.put(`https://us-east1-serverless-389521.cloudfunctions.net/editQuestion?document_id=${editingQuestion.id}`, updatedQuestion);
+            await axios.put(`https://us-east1-sdp17-392601.cloudfunctions.net/editQuestion?document_id=${editingQuestion.id}`, updatedQuestion);
             fetchQuestions();
             handleCloseEditDialog();
         } catch (error) {
@@ -172,7 +172,7 @@ const QuestionManagementPage = () => {
         try {
             const questionToDelete = questions.find((question) => question.id === questionId);
             if (questionToDelete) {
-                await axios.delete(`https://us-east1-serverless-389521.cloudfunctions.net/deletequestion?document_id=${questionToDelete.id}`);
+                await axios.delete(`https://us-east1-sdp17-392601.cloudfunctions.net/deletequestion?document_id=${questionToDelete.id}`);
                 fetchQuestions();
             }
         } catch (error) {
@@ -215,7 +215,7 @@ const QuestionManagementPage = () => {
         };
 
         try {
-            await axios.post('https://us-east1-serverless-389521.cloudfunctions.net/addquestion', JSON.stringify(newQuestionData), {
+            await axios.post('https://us-east1-sdp17-392601.cloudfunctions.net/addquestion', JSON.stringify(newQuestionData), {
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -233,7 +233,7 @@ const QuestionManagementPage = () => {
 
     const handleDeleteCategory = async (category) => {
         try {
-            await axios.delete(`https://us-east1-serverless-389521.cloudfunctions.net/deleteCategory?category=${category}`);
+            await axios.delete(`https://us-east1-sdp17-392601.cloudfunctions.net/deleteCategory?category=${category}`);
             fetchCategories();
         } catch (error) {
             console.log(error);
@@ -255,7 +255,7 @@ const QuestionManagementPage = () => {
                 Category: newCategory,
             };
 
-            await axios.post('https://us-east1-serverless-389521.cloudfunctions.net/addCategory', newCategoryData, {
+            await axios.post('https://us-east1-sdp17-392601.cloudfunctions.net/addCategory', newCategoryData, {
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -270,9 +270,7 @@ const QuestionManagementPage = () => {
 
     return (
         <Container maxWidth="md">
-            <Typography variant="h4" align="center" gutterBottom>
-                Question and Category Management
-            </Typography>
+
 
             <Tabs value={currentTab} onChange={handleTabChange} centered>
                 <Tab label="Question Management" />
@@ -579,7 +577,8 @@ const QuestionManagementPage = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </Container>
+
+                </Container>
     );
 };
 

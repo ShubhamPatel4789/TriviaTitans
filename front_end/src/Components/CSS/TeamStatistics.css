@@ -1,0 +1,27 @@
+/* Styles for the TeamStatistics component */
+.team-statistics {
+    border: 1px solid #ccc;
+    padding: 10px;
+    max-width: 300px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  
+  .team-statistics h2 {
+    margin-bottom: 10px;
+    color: #007bff;
+  }
+  
+  .team-statistics p {
+    margin: 5px 0;
+  }
+  
+  /* Styles for labels */
+  .label {
+    font-weight: bold;
+  }
+  
+  .label-value {
+    color: #007bff;
+  }
+  

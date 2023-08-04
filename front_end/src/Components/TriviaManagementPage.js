@@ -12,6 +12,7 @@ import Select from 'react-select';
 const difficultyLevels = ['easy', 'medium', 'difficult'];
 const timeframes = [5, 10, 15, 20];
 
+
 const useStyles = makeStyles((theme) => ({
     formControl: {
         minWidth: 200,
@@ -27,6 +28,7 @@ const useStyles = makeStyles((theme) => ({
         margin: 'auto',
         marginTop: theme.spacing(4),
         padding: theme.spacing(2),
+        paddingBottom: theme.spacing(8),
         border: `1px solid ${theme.palette.grey[300]}`,
         borderRadius: theme.spacing(1),
         backgroundColor: theme.palette.background.paper,
@@ -44,7 +46,7 @@ const TriviaManagementPage = () => {
 
     useEffect(() => {
         // Fetch categories from API
-        axios.get('https://us-east1-serverless-389521.cloudfunctions.net/getAllCategories')
+        axios.get('https://us-east1-sdp17-392601.cloudfunctions.net/getAllCategories')
             .then((response) => {
                 const categoryOptions = response.data.categories.map((category) => ({
                     value: category,
@@ -90,7 +92,7 @@ const TriviaManagementPage = () => {
             shortDescription: description,
         };
 
-        axios.post('https://us-east1-serverless-389521.cloudfunctions.net/createtrivia', newGame, {
+        axios.post('https://us-east1-sdp17-392601.cloudfunctions.net/createtrivia', newGame, {
             headers: {
                 'Content-Type': 'application/json',
             },

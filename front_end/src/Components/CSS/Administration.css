@@ -1,0 +1,43 @@
+/* Default styles for the Remove (X) button */
+.removeButton {
+    color: darkgrey;
+    /* background-color: transparent; */
+    border: none;
+    cursor: pointer;
+  }
+  
+  /* Hover styles for the Remove (X) button */
+  .removeButton:hover {
+    background-color: red;
+  }
+  
+  /* Default styles for the Promote to Admin button */
+  .promoteButton {
+    color: rgb(0, 0, 0);
+    /* background-color: transparent; */
+    border: none;
+    cursor: pointer;
+  }
+  
+  /* Hover styles for the Promote to Admin button */
+  .promoteButton:hover {
+    background-color: rgb(0, 210, 0);
+  }
+
+  .leave-button {
+    position: absolute;
+    top: 70px;
+    right: 10px;
+    padding: 8px 16px;
+    background-color: transparent;
+    color: #333; /* Default color */
+    border: 1px solid #333;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  .leave-button:hover {
+    background-color: #ff0000; /* Red on hover */
+    color: #fff;
+  }

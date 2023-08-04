@@ -14,6 +14,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Box,
 } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
@@ -27,28 +28,45 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     padding: theme.spacing(2),
   },
+  playButton: {
+    margin: theme.spacing(1),
+  },
 }));
 
-const TriviaItem = ({ trivia, handleJoinGame }) => {
+const TriviaItem = ({ trivia, handleJoinGame, handleJoinGameAsTeam }) => {
   const classes = useStyles();
+  const teamName = localStorage.getItem('teamName');
+  const email = localStorage.getItem('email');
+  const [isTeamGame, setIsTeamGame] = useState(teamName !== null);
 
   return (
-    <Grid item xs={12} sm={6} md={4}>
-      <Paper elevation={3} className={classes.paper}>
-        <Typography variant="h5">{trivia.triviaName}</Typography>
-        <Typography>Category: {trivia.categoryName}</Typography>
-        <Typography>Short Description: {trivia.shortDescription}</Typography>
-        <Typography>Timeframe: {trivia.timeFrame}</Typography>
-        <Typography>Difficulty Level: {trivia.difficultyLevel}</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => handleJoinGame(trivia.triviaId, "user@example.com")}
-        >
-          Play
-        </Button>
-      </Paper>
-    </Grid>
+      <Grid item xs={12} sm={6} md={4}>
+        <Paper elevation={3} className={classes.paper}>
+          <Typography variant="h5">{trivia.triviaName}</Typography>
+          <Typography>Category: {trivia.categoryName}</Typography>
+          <Typography>Short Description: {trivia.shortDescription}</Typography>
+          <Typography>Timeframe: {trivia.timeFrame}</Typography>
+          <Typography>Difficulty Level: {trivia.difficultyLevel}</Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => handleJoinGame(trivia.triviaId, email)}
+            className={classes.playButton}
+          >
+            Play as Individual
+          </Button>
+          {isTeamGame && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleJoinGameAsTeam(trivia.triviaId, teamName)}
+              className={classes.playButton}
+            >
+              Play as Team
+            </Button>
+          )}
+        </Paper>
+      </Grid>
   );
 };
 
@@ -101,15 +119,52 @@ const BrowseGames = () => {
 
   const handleJoinGame = async (triviaId, email) => {
     try {
-      const response = await axios.post("https://us-central1-sdp17-392601.cloudfunctions.net/trivia-details-dev-joinGame", {
-        triviaId,
-        "emailId":email,
-      });
+      const response = await axios.post(
+        "https://us-central1-sdp17-392601.cloudfunctions.net/trivia-details-dev-joinGame",
+        {
+          triviaId,
+          emailId: email,
+        }
+      );
+  
       // Handle the response or redirect to the active games page
+      const { gameId, message } = response.data;
+      if (gameId) {
+        // Redirect to the /play page with the gameId parameter
+        window.location.href = `/play?gameId=${gameId}`;
+      } else {
+        // Handle the error or show the message to the user
+        console.log(message);
+      }
     } catch (error) {
       console.error(error);
     }
   };
+  
+  const handleJoinGameAsTeam = async (triviaId, teamName) => {
+    try {
+      const response = await axios.post(
+        "https://us-central1-sdp17-392601.cloudfunctions.net/trivia-details-dev-joinGameAsTeam",
+        {
+          triviaId,
+          teamName,
+        }
+      );
+  
+      // Handle the response or redirect to the active games page
+      const { gameId, message } = response.data;
+      if (gameId) {
+        // Redirect to the /play page with the gameId parameter
+        window.location.href = `/play?gameId=${gameId}`;
+      } else {
+        // Handle the error or show the message to the user
+        console.log(message);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  
 
   return (
     <Container className={classes.root}>
@@ -175,7 +230,7 @@ const BrowseGames = () => {
 
       <Grid container spacing={2} className={classes.root}>
         {triviaList.map((trivia) => (
-          <TriviaItem key={trivia.triviaId} trivia={trivia} handleJoinGame={handleJoinGame} />
+          <TriviaItem key={trivia.triviaId} trivia={trivia} handleJoinGame={handleJoinGame} handleJoinGameAsTeam={handleJoinGameAsTeam}  />
         ))}
       </Grid>
     </Container>
