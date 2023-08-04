@@ -270,9 +270,7 @@ const QuestionManagementPage = () => {
 
     return (
         <Container maxWidth="md">
-            <Typography variant="h4" align="center" gutterBottom>
-                Question and Category Management
-            </Typography>
+
 
             <Tabs value={currentTab} onChange={handleTabChange} centered>
                 <Tab label="Question Management" />

@@ -28,6 +28,7 @@ const useStyles = makeStyles((theme) => ({
         margin: 'auto',
         marginTop: theme.spacing(4),
         padding: theme.spacing(2),
+        paddingBottom: theme.spacing(8),
         border: `1px solid ${theme.palette.grey[300]}`,
         borderRadius: theme.spacing(1),
         backgroundColor: theme.palette.background.paper,
