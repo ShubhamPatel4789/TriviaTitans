@@ -50,7 +50,8 @@ const App = () => {
                 <Route path="/landing-page/" element={<LandingPage />} />
                 <Route path="/invite-users/:teamName" element={<InviteUsersPage />} />
                 <Route path="/teamStatistics/" element={<TeamStatistics />} />
-                <Route path="/administration" element={<Administration />} />     
+                <Route path="/administration" element={<Administration />} />    
+                <Route path="/chatbot" element={<ChatBot />} /> 
             </Routes>
             <Footer />
         </Router>

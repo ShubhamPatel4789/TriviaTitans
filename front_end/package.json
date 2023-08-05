@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.1",
+    "@aws-sdk/client-lex-runtime-v2": "^3.378.0",
     "@emotion/styled": "^11.11.0",
     "@firebase/auth": "^1.1.0",
     "@material-ui/core": "^4.12.4",
@@ -22,7 +23,8 @@
     "react-router-dom": "^6.14.1",
     "react-scripts": "5.0.1",
     "react-select": "^5.7.3",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "uuid": "^9.0.0"
   },
   "scripts": {
     "start": "react-scripts start",
