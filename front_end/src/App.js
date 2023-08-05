@@ -20,6 +20,8 @@ import TeamStatistics from  './Components/TeamStatistics';
 import Administration from './Components/Administration';
 import AWS from 'aws-sdk';
 import Login from './Components/login/login';
+import ChatBot from './Components/virtualAssitance/ChatBot';
+
 
 
 AWS.config.update({
@@ -34,7 +36,8 @@ const App = () => {
         <Router>
             <Header />
             <Routes>
-                <Route path="/" element={<QuestionManagementPage />} />
+                <Route path="/" element={<Login />} />
+                <Route path="/questionmanagement" element={<QuestionManagementPage />} />
                 <Route path="/trivia" element={<TriviaManagementPage />} />
                 <Route path="/browse-games" element={<ViewAllTriviaPage />} />
                 <Route path="/play" element={<TriviaGamePage />} />
@@ -50,7 +53,8 @@ const App = () => {
                 <Route path="/landing-page/" element={<LandingPage />} />
                 <Route path="/invite-users/:teamName" element={<InviteUsersPage />} />
                 <Route path="/teamStatistics/" element={<TeamStatistics />} />
-                <Route path="/administration" element={<Administration />} />     
+                <Route path="/administration" element={<Administration />} />    
+                <Route path="/chatbot" element={<ChatBot />} /> 
             </Routes>
             <Footer />
         </Router>
