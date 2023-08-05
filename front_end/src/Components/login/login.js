@@ -5,7 +5,8 @@ import 'firebase/compat/firestore';
 import firebaseConfig from '../../firebaseConfig';
 import './login.css';
 import { useNavigate } from 'react-router-dom';
-import { FacebookAuthProvider } from "firebase/compat/auth";
+import { signInWithPopup,getAuth,FacebookAuthProvider } from "firebase/compat/auth";
+
 
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
@@ -19,6 +20,7 @@ const Login = () => {
     const navigate = useNavigate();
     const [resetEmail, setResetEmail] = useState('');
     const [resetSuccess, setResetSuccess] = useState(false);
+    const [error, setError] = useState(null);
 
     const handleEmailPasswordLogin = async (event) => {
         event.preventDefault();
@@ -31,6 +33,7 @@ const Login = () => {
             console.log('Logged in with email and password successfull:', userCredential.user);
             // Redirect to the landing page after successful login
             localStorage.setItem('userId', userId);
+            localStorage.setItem('userEmail', email);
             navigate("/loginmfa", { state: { userId: userId } });// Replace '/landing' with the actual path of your landing page
         } catch (error) {
             console.log('Email/password login failure:', error.message);
@@ -60,6 +63,7 @@ const Login = () => {
                 const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
                 // The signed-in user info.
                 const user = result.user;
+                localStorage.setItem('userEmail', user.email);
                 user.getIdToken().then((idToken) => {
                     console.log("Token of the user" + idToken);
 
@@ -88,53 +92,57 @@ const Login = () => {
                 alert(errorMessage);
             });
     };
+    // const signInWithFacebook = async () => {
+    //     // Sign in with the Facebook popup
+    //     const result = await signInWithPopup(auth, FacebookAuthProvider);
+    //     console.log(result);
+    //     // Get the user data
+    //     const user = result.user;
+    
+    //     // Return the user object
+    //     return user;
+    // };
 
-
-    const handleFacebookLoginSuccess = () => {
-        const provider = new firebase.auth.FacebookAuthProvider();
-        const auth = firebase.auth();
-        // Sign in the user with Facebook
-        auth.signInWithPopup(provider)
-            .then((result) => {
-                console.log("Inside the facebook method");
-
-                // This gives you a Google Access Token. You can use it to access the Google API.
-                const credential = firebase.auth.FacebookAuthProvider.credentialFromResult(result);
-                // The signed-in user info.
-                const user = result.user;
-                user.getIdToken().then((idToken) => {
-                    console.log("Token of the user" + idToken);
-
-                    // IdP data available using getAdditionalUserInfo(result)
-                    // ...
-
-                    console.log(user);
-                    const userId = user.uid;
-                    localStorage.setItem('userId', userId);
-                    navigate("/loginmfa");
-                });
-            }).catch((error) => {
-                // Handle Errors here.
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                // The email of the user's account used.
-                const email = error.customData?.email;
-                // The AuthCredential type that was used.
-                const credential = firebase.auth.FacebookAuthProvider.credentialFromError(error);
-
-                console.log(errorCode);
-                console.log(errorMessage);
-                console.log(email);
-                console.log(credential);
-
-                alert(errorMessage);
+    const handleFacebookLogin = async () => {
+        try {
+          // Create a new Facebook auth provider instance
+          const provider = new firebase.auth.FacebookAuthProvider();
+    
+          // Sign in with the Facebook popup
+          const result = await firebase.auth().signInWithPopup(provider);
+    
+          // Get the user data
+          const user = result.user;
+          const userId = user.uid;
+    
+          // Check if the user already exists in Firestore
+          const userRef = firebase.firestore().collection('users').doc(userId);
+          const doc = await userRef.get();
+    
+          if (!doc.exists) {
+            // If the user does not exist, create a new user document in Firestore
+            await userRef.set({
+              name: user.displayName,
+              email: user.email,
+              photoURL: user.photoURL,
             });
-    };
+          }
+    
+          // Redirect to the landing page after successful login
+          localStorage.setItem('userId', userId);
+          navigate('/loginmfa');
+        } catch (error) {
+          console.error('Facebook login error:', error);
+          setError(error.message);
+        }
+      };
 
-    const handleFacebookLoginFailure = (error) => {
-        console.log('Facebook login failure:', error);
-        // Handle the login failure here
-    };
+
+
+    // const handleFacebookLoginFailure = (error) => {
+    //     console.log('Facebook login failure:', error);
+    //     // Handle the login failure here
+    // };
 
     return (
         <div className="login-container">
@@ -187,13 +195,13 @@ const Login = () => {
             >
                 Continue with Google
             </button>
-
             <button
-                onClick={handleFacebookLoginSuccess}
-                className="google-login-button"
+                onClick={handleFacebookLogin}
+                className="facebook-login-button"
             >
                 Continue with Facebook
             </button>
+
 
             {/* Registration Link */}
             <p>Don't have an account? <a href="/register">Register here</a></p>

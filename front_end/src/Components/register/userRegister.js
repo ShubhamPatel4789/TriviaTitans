@@ -42,6 +42,8 @@ const UserRegistration = () => {
             // Add the user's email to their Firestore document
             const userRef = db.collection('users').doc(userCredential.user.uid);
             const userId = userCredential.user.uid;
+            const userEmail = userCredential.user.email;
+            localStorage.setItem('userEmail', userEmail);
             userRef.set({
                 username: username,
                 email: email,
@@ -86,6 +88,7 @@ const UserRegistration = () => {
                     console.log("User Credentials: " + credential);
                     console.log("Register success: " + result);
                     localStorage.setItem('userId', userId);
+                    localStorage.setItem('userEmail', user.email);
                     navigate("/mfa", { state: { userId: userId } });
                 });
             }).catch((error) => {

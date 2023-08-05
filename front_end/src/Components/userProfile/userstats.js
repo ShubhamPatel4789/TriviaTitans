@@ -4,60 +4,40 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 
 const Userstats = () => {
 
-    const userId = localStorage.getItem('userId');
+    const userId = localStorage.getItem('userEmail');
     const [user, setUser] = useState('');
     const [allUsers, setAllUsers] = useState([]);
 
     useEffect(() => {
+        console.log('User ID user stats:', userId);
         fetchUserStatistics();
-        fetchAllUsers();
         console.log('User ID user stats:', userId);
     }, []);
 
     const fetchUserStatistics = async () => {
         try {
             const response = await axios.post(
-                'https://rlohu2l7bk.execute-api.us-east-1.amazonaws.com/stage1',
+                'https://fwqdy26uz7.execute-api.us-east-1.amazonaws.com/stage1',
                 {
                     body: JSON.stringify({
-                        "userId": userId,
+                        "user_Id": userId,
                     }),
                 }
             );
-            setUser(JSON.parse(response.data.body));
+            console.log(response.data);
+            setUser(JSON.parse(response.data));
             console.log('User statistics:', response.data);
         } catch (error) {
             console.error('Error fetching user statistics:', error);
         }
     };
 
-    const fetchAllUsers = async () => {
-        try {
-            const response = await axios.get(
-                'https://your-api-url.com/all-users' // Replace with the actual API URL
-            );
-            setAllUsers(response.data);
-            console.log('All users:', response.data);
-        } catch (error) {
-            console.error('Error fetching all users:', error);
-        }
-    };
-
-    const compareAchievements = (otherUser) => {
-        if (user.totalPoints > otherUser.totalPoints) {
-            return `${user.name} has more total points than ${otherUser.name}`;
-        } else if (user.totalPoints < otherUser.totalPoints) {
-            return `${otherUser.name} has more total points than ${user.name}`;
-        } else {
-            return `${user.name} and ${otherUser.name} have the same total points`;
-        }
-    };
-    
-
+  
+  
     return (
         <div>
             <h2>User Statistics</h2>
-            <TableContainer component={Paper}>
+            {/* <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
                         <TableRow>
@@ -69,7 +49,6 @@ const Userstats = () => {
                             <TableCell>Total Points</TableCell>
                             <TableCell>Team Affiliations</TableCell>
                             <TableCell>Achievements</TableCell>
-                            <TableCell>Compare Achievements</TableCell>
                         </TableRow>
                     </TableHead>
                     {user && <TableBody>
@@ -92,6 +71,30 @@ const Userstats = () => {
                                     </button>
                                 ))}
                             </TableCell>
+                        </TableRow>
+                    </TableBody>}
+                </Table>
+            </TableContainer> */}
+
+            <TableContainer component={Paper}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>User name</TableCell>
+                            <TableCell>Game ID</TableCell>
+                            <TableCell>Team Name</TableCell>
+                            <TableCell>Category</TableCell>
+                            <TableCell>Total Score</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <h1>user</h1>
+                    {user && <TableBody>
+                        <TableRow>
+                            <TableCell>{user.name}</TableCell>
+                            <TableCell>{user.gamesPlayed}</TableCell>
+                            <TableCell>{user.wins}</TableCell>
+                            <TableCell>{user.losses}</TableCell>
+                    
                         </TableRow>
                     </TableBody>}
                 </Table>
