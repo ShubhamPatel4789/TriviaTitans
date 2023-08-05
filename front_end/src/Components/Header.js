@@ -10,6 +10,9 @@ const Header = () => {
                     Trivia Titans
                 </Typography>
 
+                <Button color="inherit" component={Link} to="/landing-page">
+                    Home
+                </Button>
                 <Button color="inherit" component={Link} to="/questionmanagement">
                     Content Management
                 </Button>
