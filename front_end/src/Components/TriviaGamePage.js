@@ -112,10 +112,10 @@ const TriviaGamePage = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
   const [isLobbyMessageSent, setLobbyMessageSent] = useState(false);
+  const [teamName, setTeamName] = useState(null);
 
-  const teamName = localStorage.getItem('teamName');
 
-  const[isTeamGame,setIsTeamGame]=useState(teamName!=null);
+  const[isTeamGame,setIsTeamGame]=useState(null);
   const[gameData,setGameData]=useState(null)
   const [searchParams, setSearchParams] = useSearchParams();
   const gameId=searchParams.get("gameId")
@@ -128,16 +128,47 @@ const TriviaGamePage = () => {
   const emailId = localStorage.getItem('email');
   const [isGameOverForAll, setIsGameOverForAll] = useState(false);
   const [podiumPlaces, setPodiumPlaces] = useState([]);
+  const[teamDetails,setTeamDetails]=useState({});
+  const [teamDetailsFetched, setTeamDetailsFetched] = useState(false);
 
 
-  let teamDetails={isPartOfTeam:true,
-  teamName:"team1",
-  IsTeamAdmin:localStorage.getItem('isAdmin')==="true",
-  teamMembers:["newuser123@gmail.com","user2@gmail.com"]}
+  useEffect(() => {
+    const fetchTeamDetails = async () => {
+      try {
+        const email = localStorage.getItem('email');
+        const payload = { email };
+        const response = await fetch('https://8qv04lo2b2.execute-api.us-east-1.amazonaws.com/get-team-details', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
 
-  if (!isTeamGame){
-    teamDetails.isPartOfTeam=false
-  }
+        if (!response.ok) {
+          throw new Error('Failed to fetch team details');
+        }
+
+        const data = await response.json();
+        setTeamDetails(data);
+        setIsTeamGame(data.isPartOfTeam)
+        setTeamName(data.teamName)
+        setTeamDetailsFetched(true)
+      } catch (error) {
+        console.error(error);
+
+        // Handle the error here (e.g., display an error message)
+      }
+      setTeamDetailsFetched(true)
+
+
+    };
+    if(!teamDetailsFetched){
+      fetchTeamDetails();
+    }
+
+  }, [teamDetailsFetched]);
+
 
   const inLobbySendMessage = (socketConnection,state) => {
     const payload = {
@@ -428,7 +459,7 @@ const updateScoreOnServer = async (email, teamName,correctAnswer, answered, curr
     // Event listener for receiving messages from the WebSocket
     socket.onmessage = (event) => {
       try {
-        sleep(2000);
+
         const data = JSON.parse(event.data);
         if (data.score.teamScore) {
           setTeamScore(data.score.teamScore);
@@ -610,8 +641,9 @@ const Podium = () => {
                 Score: {podiumPlaces[0].score}
               </Typography>
             </div>
-
+          
             {/* Second Place */}
+            {podiumPlaces.length >= 2 && (
             <div style={{ textAlign: 'center', marginLeft: '50px' }}>
               <Typography variant="h5" style={{ fontWeight: 'bold' }}>
                 Second Place
@@ -623,7 +655,7 @@ const Podium = () => {
                 Score: {podiumPlaces[1].score}
               </Typography>
             </div>
-
+            )}
             {/* Third Place */}
             {podiumPlaces.length >= 3 && (
               <div style={{ textAlign: 'center', marginLeft: '50px' }}>
@@ -651,8 +683,11 @@ const Podium = () => {
   const currentQuestionData = gameData?.trivia?.questions[currentQuestion];
   const currentUserScore = isTeamGame ? teamScore[teamName] : individualScore[emailId];
 
-
+  if (!teamDetailsFetched) {
+    return <div>Loading...</div>;
+  }
   return (
+
     
     <div className={classes.root}>
       {!gameStarted && (

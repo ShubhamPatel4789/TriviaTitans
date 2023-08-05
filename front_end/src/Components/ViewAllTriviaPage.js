@@ -33,11 +33,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const TriviaItem = ({ trivia, handleJoinGame, handleJoinGameAsTeam }) => {
+const TriviaItem = ({ trivia, handleJoinGame, handleJoinGameAsTeam,teamName, isTeamGame }) => {
   const classes = useStyles();
-  const teamName = localStorage.getItem('teamName');
+
+
   const email = localStorage.getItem('email');
-  const [isTeamGame, setIsTeamGame] = useState(teamName !== null);
+
 
   return (
       <Grid item xs={12} sm={6} md={4}>
@@ -79,10 +80,54 @@ const BrowseGames = () => {
   const [categoryList, setCategoryList] = useState([]);
   const [difficultyList, setDifficultyList] = useState([]);
   const [timeFrameList, setTimeFrameList] = useState([]);
+  const [isTeamGame, setIsTeamGame] = useState(null);
+  const [teamDetailsFetched, setTeamDetailsFetched] = useState(false);
+  const [teamName, setTeamName] = useState(null);
+  const[teamDetails,setTeamDetails]=useState({});
+  useEffect(() => {
+    const fetchTeamDetails = async () => {
+      try {
+        const email = localStorage.getItem('email');
+        const payload = { email };
+        const response = await fetch('https://8qv04lo2b2.execute-api.us-east-1.amazonaws.com/get-team-details', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch team details');
+        }
+
+        const data =  await response.json();
+        setTeamDetails(data)
+        setIsTeamGame(data.isPartOfTeam)
+        setTeamName(data.teamName)
+      } catch (error) {
+        console.error(error);
+        setTeamDetails({isPartOfTeam:true,
+          teamName:"team1",
+          IsTeamAdmin:localStorage.getItem('isAdmin')==="true",
+          teamMembers:["newuser123@gmail.com","user2@gmail.com"]})
+        // Handle the error here (e.g., display an error message)
+      }
+
+
+      setTeamDetailsFetched(true);
+
+    };
+    if(!teamDetailsFetched){
+      fetchTeamDetails();
+    }
+
+  }, [teamDetailsFetched]);
 
   useEffect(() => {
     fetchTrivia();
   }, []);
+
 
   const fetchTrivia = async () => {
     try {
@@ -164,9 +209,12 @@ const BrowseGames = () => {
       console.error(error);
     }
   };
-  
+  if (!teamDetailsFetched) {
+    return <div>Loading...</div>;
+  }
 
   return (
+
     <Container className={classes.root}>
       <Typography variant="h3" component="h1" align="center">
         Browse Games
@@ -230,7 +278,7 @@ const BrowseGames = () => {
 
       <Grid container spacing={2} className={classes.root}>
         {triviaList.map((trivia) => (
-          <TriviaItem key={trivia.triviaId} trivia={trivia} handleJoinGame={handleJoinGame} handleJoinGameAsTeam={handleJoinGameAsTeam}  />
+          <TriviaItem key={trivia.triviaId} trivia={trivia} teamName={teamName} isTeamGame={isTeamGame} handleJoinGame={handleJoinGame} handleJoinGameAsTeam={handleJoinGameAsTeam}  />
         ))}
       </Grid>
     </Container>
