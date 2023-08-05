@@ -13,6 +13,9 @@ const Header = () => {
                 <Button color="inherit" component={Link} to="/questionmanagement">
                     Content Management
                 </Button>
+                <Button color="inherit" component={Link} to="/chatbot">
+                    Chatbot
+                </Button>
                 <Button color="inherit" component={Link} to="/trivia">
                     Trivia Management
                 </Button>
