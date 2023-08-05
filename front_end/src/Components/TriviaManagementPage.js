@@ -9,10 +9,11 @@ import {
 import axios from 'axios';
 import Select from 'react-select';
 
+// Define difficulty levels and timeframes for the trivia game
 const difficultyLevels = ['easy', 'medium', 'difficult'];
 const timeframes = [5, 10, 15, 20];
 
-
+// Define styles using Material-UI makeStyles
 const useStyles = makeStyles((theme) => ({
     formControl: {
         minWidth: 200,
@@ -36,6 +37,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const TriviaManagementPage = () => {
+    // Initialize state variables using the useState hook
     const classes = useStyles();
     const [categories, setCategories] = useState([]);
     const [category, setCategory] = useState(null);
@@ -44,10 +46,11 @@ const TriviaManagementPage = () => {
     const [triviaName, setTriviaName] = useState('');
     const [description, setDescription] = useState('');
 
+    // Fetch categories from the API when the component mounts
     useEffect(() => {
-        // Fetch categories from API
         axios.get('https://us-east1-sdp17-392601.cloudfunctions.net/getAllCategories')
             .then((response) => {
+                // Map fetched categories to options format for Select
                 const categoryOptions = response.data.categories.map((category) => ({
                     value: category,
                     label: category,
@@ -59,6 +62,7 @@ const TriviaManagementPage = () => {
             });
     }, []);
 
+    // Event handlers for changing category, difficulty, and timeframe
     const handleCategoryChange = (selectedOption) => {
         setCategory(selectedOption);
     };
@@ -71,6 +75,7 @@ const TriviaManagementPage = () => {
         setTimeframe(selectedOption);
     };
 
+    // Event handlers for changing trivia name and description
     const handleTriviaNameChange = (event) => {
         setTriviaName(event.target.value);
     };
@@ -79,11 +84,13 @@ const TriviaManagementPage = () => {
         setDescription(event.target.value);
     };
 
+    // Function to create a new trivia game
     const handleCreateGame = () => {
         if (!category || !difficulty || !timeframe) {
             return;
         }
 
+        // Construct new game object
         const newGame = {
             triviaName,
             category: category.value,
@@ -92,6 +99,7 @@ const TriviaManagementPage = () => {
             shortDescription: description,
         };
 
+        // Send POST request to create the trivia game
         axios.post('https://us-east1-sdp17-392601.cloudfunctions.net/createtrivia', newGame, {
             headers: {
                 'Content-Type': 'application/json',
@@ -100,21 +108,22 @@ const TriviaManagementPage = () => {
             .then((response) => {
                 console.log('Trivia game created:', response.data);
                 window.alert('Trivia game has been created!');
-
             })
             .catch((error) => {
                 console.error('Failed to create trivia game:', error);
-
             });
     };
 
     return (
         <div className={classes.formContainer}>
+            {/* Title */}
             <Typography variant="h5" align="center" gutterBottom>
                 Trivia Management Page
             </Typography>
 
+            {/* Form elements */}
             <Grid container spacing={2}>
+                {/* Select category */}
                 <Grid item xs={12}>
                     <Select
                         className={classes.formControl}
@@ -125,6 +134,7 @@ const TriviaManagementPage = () => {
                     />
                 </Grid>
 
+                {/* Select difficulty */}
                 <Grid item xs={12}>
                     <Select
                         className={classes.formControl}
@@ -138,6 +148,7 @@ const TriviaManagementPage = () => {
                     />
                 </Grid>
 
+                {/* Select timeframe */}
                 <Grid item xs={12}>
                     <Select
                         className={classes.formControl}
@@ -151,6 +162,7 @@ const TriviaManagementPage = () => {
                     />
                 </Grid>
 
+                {/* Enter trivia name */}
                 <Grid item xs={12}>
                     <TextField
                         className={classes.textField}
@@ -162,6 +174,7 @@ const TriviaManagementPage = () => {
                     />
                 </Grid>
 
+                {/* Enter description */}
                 <Grid item xs={12}>
                     <TextField
                         className={classes.textField}
@@ -175,6 +188,7 @@ const TriviaManagementPage = () => {
                     />
                 </Grid>
 
+                {/* Create game button */}
                 <Grid item xs={12}>
                     <Button
                         className={classes.button}

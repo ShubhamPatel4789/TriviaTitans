@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+    // Import Material-UI components for UI design
     Container,
     Typography,
     Button,
@@ -20,10 +21,12 @@ import { makeStyles } from '@material-ui/core/styles';
 import axios from 'axios';
 
 const useStyles = makeStyles((theme) => ({
+    // Styling for question cards
     questionCard: {
         padding: theme.spacing(2),
         marginBottom: theme.spacing(2),
     },
+    // Styling for answer text
     answerText: {
         fontWeight: 'bold',
         marginTop: theme.spacing(1),
@@ -50,6 +53,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const QuestionManagementPage = () => {
+    // Initialize state variables using the useState hook
     const classes = useStyles();
     const [questions, setQuestions] = useState([]);
     const [editingQuestion, setEditingQuestion] = useState(null);
@@ -64,6 +68,7 @@ const QuestionManagementPage = () => {
         Explanation: '',
     });
     const [openEditDialog, setOpenEditDialog] = useState(false);
+    // Fetch questions and categories when the component mounts
     const [newQuestion, setNewQuestion] = useState({
         question: '',
         optionA: '',
@@ -86,6 +91,7 @@ const QuestionManagementPage = () => {
         fetchCategories();
     }, []);
 
+    // Function to fetch questions from the server
     const fetchQuestions = async () => {
         try {
             const response = await axios.get('https://us-east1-sdp17-392601.cloudfunctions.net/getAllQuestions');
@@ -95,6 +101,7 @@ const QuestionManagementPage = () => {
         }
     };
 
+    // Function to fetch categories from the server
     const fetchCategories = async () => {
         try {
             const response = await axios.get('https://us-east1-sdp17-392601.cloudfunctions.net/getAllCategories');
@@ -104,6 +111,7 @@ const QuestionManagementPage = () => {
         }
     };
 
+    // Function to handle editing a question
     const handleEditQuestion = (questionId) => {
         const questionToEdit = questions.find((question) => question.id === questionId);
         if (questionToEdit) {
@@ -122,6 +130,7 @@ const QuestionManagementPage = () => {
         }
     };
 
+    // Function to close the edit dialog
     const handleCloseEditDialog = () => {
         setEditingQuestion(null);
         setEditedQuestion('');
@@ -137,6 +146,7 @@ const QuestionManagementPage = () => {
         setOpenEditDialog(false);
     };
 
+    // Function to handle changes in the new question form
     const handleNewQuestionChange = (field, value) => {
         setNewQuestion((prevQuestion) => ({
             ...prevQuestion,
@@ -144,6 +154,7 @@ const QuestionManagementPage = () => {
         }));
     };
 
+    // Function to save an edited question
     const handleSaveEditedQuestion = async () => {
         if (!editingQuestion) return;
 
@@ -168,6 +179,7 @@ const QuestionManagementPage = () => {
         }
     };
 
+    // Function to delete a question
     const handleDeleteQuestion = async (questionId) => {
         try {
             const questionToDelete = questions.find((question) => question.id === questionId);
@@ -180,6 +192,7 @@ const QuestionManagementPage = () => {
         }
     };
 
+    // Function to add a new question
     const handleAddQuestion = () => {
         setOpenAddDialog(true);
     };
@@ -199,6 +212,7 @@ const QuestionManagementPage = () => {
         setOpenAddDialog(false);
     };
 
+    // Function to save a new question
     const handleSaveNewQuestion = async () => {
         const { question, optionA, optionB, optionC, optionD, difficultyLevel, category, answer, explanation } = newQuestion;
 
@@ -227,10 +241,12 @@ const QuestionManagementPage = () => {
         }
     };
 
+    // Function to handle tab change
     const handleTabChange = (event, newValue) => {
         setCurrentTab(newValue);
     };
 
+    // Function to delete a category
     const handleDeleteCategory = async (category) => {
         try {
             await axios.delete(`https://us-east1-sdp17-392601.cloudfunctions.net/deleteCategory?category=${category}`);
@@ -240,10 +256,12 @@ const QuestionManagementPage = () => {
         }
     };
 
+    // Function to add a new category
     const handleAddCategory = () => {
         setOpenAddCategoryDialog(true);
     };
 
+    // Function to close the add category dialog
     const handleCloseAddCategoryDialog = () => {
         setNewCategory('');
         setOpenAddCategoryDialog(false);
@@ -309,6 +327,7 @@ const QuestionManagementPage = () => {
                                         Difficulty Level: {question.DifficultyLevel}
                                     </Typography>
                                     <Box mt={2}>
+                                        {/* Buttons to edit and delete the question */}
                                         <Button
                                             variant="contained"
                                             color="primary"
@@ -331,11 +350,12 @@ const QuestionManagementPage = () => {
                     </Grid>
                 </Box>
             )}
-
+            {/* Display category list */}
             {currentTab === 1 && (
                 <Box my={4} className={classes.categoryList}>
                     {categories.map((category) => (
                         <div key={category} className={classes.categoryItem}>
+                            {/* Display category name and delete button */}
                             <Typography variant="body1">{category}</Typography>
                             <Button
                                 variant="contained"
@@ -348,7 +368,7 @@ const QuestionManagementPage = () => {
                     ))}
                 </Box>
             )}
-
+            {/* Buttons to add a new question or category */}
             <Box mt={4}>
                 {currentTab === 0 && (
                     <Button variant="contained" color="primary" onClick={handleAddQuestion}>
@@ -361,7 +381,7 @@ const QuestionManagementPage = () => {
                     </Button>
                 )}
             </Box>
-
+            {/* Dialog for editing a question */}
             <Dialog open={openEditDialog} onClose={handleCloseEditDialog} className={classes.editDialog}>
                 <DialogTitle>Edit Question</DialogTitle>
                 <DialogContent>
@@ -446,7 +466,7 @@ const QuestionManagementPage = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
+            {/* Dialog for adding a new question */}
             <Dialog open={openAddDialog} onClose={handleCloseAddDialog} className={classes.editDialog}>
                 <DialogTitle>Add Question</DialogTitle>
                 <DialogContent>
@@ -555,7 +575,7 @@ const QuestionManagementPage = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-
+            {/* Dialog for adding a new category */}
             <Dialog open={openAddCategoryDialog} onClose={handleCloseAddCategoryDialog} className={classes.editDialog}>
                 <DialogTitle>Add Category</DialogTitle>
                 <DialogContent>
@@ -578,7 +598,7 @@ const QuestionManagementPage = () => {
                 </DialogActions>
             </Dialog>
 
-                </Container>
+        </Container>
     );
 };
 
