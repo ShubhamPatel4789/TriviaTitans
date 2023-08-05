@@ -107,39 +107,39 @@ const Login = () => {
     //     return user;
     // };
 
-    const handleFacebookLogin = async () => {
-        try {
-          // Create a new Facebook auth provider instance
-          const provider = new firebase.auth.FacebookAuthProvider();
+    // const handleFacebookLogin = async () => {
+    //     try {
+    //       // Create a new Facebook auth provider instance
+    //       const provider = new firebase.auth.FacebookAuthProvider();
     
-          // Sign in with the Facebook popup
-          const result = await firebase.auth().signInWithPopup(provider);
+    //       // Sign in with the Facebook popup
+    //       const result = await firebase.auth().signInWithPopup(provider);
     
-          // Get the user data
-          const user = result.user;
-          const userId = user.uid;
+    //       // Get the user data
+    //       const user = result.user;
+    //       const userId = user.uid;
     
-          // Check if the user already exists in Firestore
-          const userRef = firebase.firestore().collection('users').doc(userId);
-          const doc = await userRef.get();
+    //       // Check if the user already exists in Firestore
+    //       const userRef = firebase.firestore().collection('users').doc(userId);
+    //       const doc = await userRef.get();
     
-          if (!doc.exists) {
-            // If the user does not exist, create a new user document in Firestore
-            await userRef.set({
-              name: user.displayName,
-              email: user.email,
-              photoURL: user.photoURL,
-            });
-          }
+    //       if (!doc.exists) {
+    //         // If the user does not exist, create a new user document in Firestore
+    //         await userRef.set({
+    //           name: user.displayName,
+    //           email: user.email,
+    //           photoURL: user.photoURL,
+    //         });
+    //       }
     
-          // Redirect to the landing page after successful login
-          localStorage.setItem('userId', userId);
-          navigate('/loginmfa');
-        } catch (error) {
-          console.error('Facebook login error:', error);
-          setError(error.message);
-        }
-      };
+    //       // Redirect to the landing page after successful login
+    //       localStorage.setItem('userId', userId);
+    //       navigate('/loginmfa');
+    //     } catch (error) {
+    //       console.error('Facebook login error:', error);
+    //       setError(error.message);
+    //     }
+    //   };
 
 
 
@@ -200,12 +200,12 @@ const Login = () => {
             >
                 Continue with Google
             </button>
-            <button
+            {/* <button
                 onClick={handleFacebookLogin}
                 className="facebook-login-button"
             >
                 Continue with Facebook
-            </button>
+            </button> */}
 
 
             {/* Registration Link */}

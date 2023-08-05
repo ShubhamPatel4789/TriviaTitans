@@ -56,11 +56,11 @@ const UserRegistration = () => {
             console.log(email)
             console.log('uuuuUser registered:', userCredential.user);
             const Item = {
-                    user_email: email,
-                    username: username,
-                    first_name: firstName,
-                    last_name: lastName
-                
+                user_email: email,
+                username: username,
+                first_name: firstName,
+                last_name: lastName
+
             };
             const params = {
                 TableName: 'userDetails',
@@ -106,24 +106,39 @@ const UserRegistration = () => {
                     // IdP data available using getAdditionalUserInfo(result)
                     // ...
 
-                    console.log(user);
-                    const userId = user.uid;
                     const params = {
                         TableName: 'userDetails',
                         Item: {
-                            user_email: user.emailVerified,
+                            user_email: user.email,
                             username: user.email,
                             first_name: user.displayName,
                             last_name: user.displayName
                         }
                     };
+                    const dynamoDB = new AWS.DynamoDB.DocumentClient();
+                    dynamoDB.put(params, (err, data) => {
+                        if (err) {
+                            console.error('Error saving answers:', err);
+                        } else {
+                            console.log('Answers saved to DynamoDB!');
+                        }
+                    }
+                    );
+
+                    console.log(user);
+                    const userId = user.uid;
                     console.log("User Id: " + userId);
+                    console.log("User Email: " + user.email);
+                    console.log("User Name: " + user.displayName);
+                    console.log("User Photo: " + user.photoURL);
                     console.log("User Credentials: " + credential);
                     console.log("Register success: " + result);
                     localStorage.setItem('userId', userId);
                     localStorage.setItem('userEmail', user.email);
                     navigate("/mfa", { state: { userId: userId } });
                 });
+
+               
             }).catch((error) => {
                 // Handle Errors here.
                 const errorCode = error.code;
@@ -141,7 +156,7 @@ const UserRegistration = () => {
                 alert(errorMessage);
             });
 
-       
+
     };
 
     return (
