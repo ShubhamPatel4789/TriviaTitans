@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import AWS from 'aws-sdk';
@@ -22,6 +21,8 @@ const SingleFactorAuth = () => {
             userId: userId,
             answer: answer
         };
+        console.log('lgin next');
+
 
         // Parameters for the invoke operation
         const params = {
@@ -34,9 +35,11 @@ const SingleFactorAuth = () => {
             if (err) {
                 console.error('Error invoking Lambda function:', err);
             } else {
+                console.log('Lambda function returned data:', data);
                 const response = JSON.parse(data.Payload);
                 if (response.isValidAnswer) {
                     setIsValidAnswer(true);
+                    console.log(params.Payload);
                     navigate('/landing-page', { state: { userId: userId } });
                     // You can redirect to the desired page after successful validation
                     // For example, navigate("/dashboard");
