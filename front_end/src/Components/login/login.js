@@ -5,7 +5,7 @@ import 'firebase/compat/firestore';
 import firebaseConfig from '../../firebaseConfig';
 import './login.css';
 import { useNavigate } from 'react-router-dom';
-import { signInWithPopup,getAuth,FacebookAuthProvider } from "firebase/compat/auth";
+
 
 
 if (!firebase.apps.length) {
@@ -21,11 +21,13 @@ const Login = () => {
     const [resetEmail, setResetEmail] = useState('');
     const [resetSuccess, setResetSuccess] = useState(false);
     const [error, setError] = useState(null);
+    const [loggedIn, setLoggedIn] = useState(false);
 
     const handleEmailPasswordLogin = async (event) => {
         event.preventDefault();
 
         try {
+            setResetSuccess(false); 
             // Sign in the user with email/password
             const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
 
@@ -34,14 +36,16 @@ const Login = () => {
             // Redirect to the landing page after successful login
             localStorage.setItem('userId', userId);
             localStorage.setItem('userEmail', email);
+            setLoggedIn(true);
             navigate("/loginmfa", { state: { userId: userId } });// Replace '/landing' with the actual path of your landing page
+            
         } catch (error) {
             console.log('Email/password login failure:', error.message);
             setLoginError('Invalid email or password.');
         }
     };
 
-    const handleForgotPassword = async () => {
+    const handleForgotPassword = async ({setResetSuccess}) => {
         try {
             await firebase.auth().sendPasswordResetEmail(resetEmail);
             setResetSuccess(true);
@@ -173,7 +177,9 @@ const Login = () => {
                 {loginError && <div className="error">{loginError}</div>}
 
                 {/* Submit button */}
-                <button type="submit">Login</button>
+                <button type="submit"  >Login</button>
+            </form>
+            <form>
 
                 <label htmlFor="reset-email-input">Forgot your password? Enter your email:</label>
                 <input
@@ -188,7 +194,6 @@ const Login = () => {
                 {resetSuccess && <div className="success">Password reset email sent!</div>}
             </form>
             {/* Google Login */}
-
             <button
                 onClick={handleGoogleLogin}
                 className="google-login-button"

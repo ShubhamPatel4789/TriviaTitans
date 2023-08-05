@@ -17,15 +17,15 @@ const Userstats = () => {
     const fetchUserStatistics = async () => {
         try {
             const response = await axios.post(
-                'https://fwqdy26uz7.execute-api.us-east-1.amazonaws.com/stage1',
+                'https://q9hqoptz1b.execute-api.us-east-1.amazonaws.com/stage1',
                 {
                     body: JSON.stringify({
-                        "user_Id": userId,
+                        "userId": userId,
                     }),
                 }
             );
             console.log(response.data);
-            setUser(JSON.parse(response.data));
+            setUser(JSON.parse(response.data.body));
             console.log('User statistics:', response.data);
         } catch (error) {
             console.error('Error fetching user statistics:', error);
@@ -37,31 +37,29 @@ const Userstats = () => {
     return (
         <div>
             <h2>User Statistics</h2>
-            {/* <TableContainer component={Paper}>
+            <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Name</TableCell>
+                            <TableCell>User</TableCell>
                             <TableCell>Games Played</TableCell>
                             <TableCell>Wins</TableCell>
                             <TableCell>Losses</TableCell>
                             <TableCell>Wins/Loss ratio</TableCell>
                             <TableCell>Total Points</TableCell>
-                            <TableCell>Team Affiliations</TableCell>
                             <TableCell>Achievements</TableCell>
                         </TableRow>
                     </TableHead>
                     {user && <TableBody>
                         <TableRow>
-                            <TableCell>{user.name}</TableCell>
-                            <TableCell>{user.gamesPlayed}</TableCell>
+                            <TableCell>{user.user_id}</TableCell>
+                            <TableCell>{user.games_played}</TableCell>
                             <TableCell>{user.wins}</TableCell>
                             <TableCell>{user.losses}</TableCell>
                             <TableCell>{(user.wins / user.losses).toFixed(2)}</TableCell>
-                            <TableCell>{user.totalPoints}</TableCell>
-                            <TableCell>{user.teamAffiliations.join(', ')}</TableCell>
-                            <TableCell>{user.achievements.join(', ')}</TableCell>
-                            <TableCell>
+                            <TableCell>{user.total_points}</TableCell>
+                            
+                            {/* <TableCell>
                                 {allUsers.map((otherUser) => (
                                     <button
                                         key={otherUser.id}
@@ -70,13 +68,13 @@ const Userstats = () => {
                                         Compare with {otherUser.name}
                                     </button>
                                 ))}
-                            </TableCell>
+                            </TableCell> */}
                         </TableRow>
                     </TableBody>}
                 </Table>
-            </TableContainer> */}
+            </TableContainer>
 
-            <TableContainer component={Paper}>
+            {/* <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
                         <TableRow>
@@ -98,7 +96,7 @@ const Userstats = () => {
                         </TableRow>
                     </TableBody>}
                 </Table>
-            </TableContainer>
+            </TableContainer> */}
         </div>
     );
 };

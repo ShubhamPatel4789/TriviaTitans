@@ -6,6 +6,7 @@ import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 import firebaseConfig from '../../firebaseConfig';
 import { useNavigate } from 'react-router-dom';
+import AWS from 'aws-sdk';
 import { GoogleAuthProvider, getAuth, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 
 if (!firebase.apps.length) {
@@ -14,8 +15,11 @@ if (!firebase.apps.length) {
 
 const db = firebase.firestore();
 
+
 const UserRegistration = () => {
     const [username, setUsername] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
@@ -28,6 +32,7 @@ const UserRegistration = () => {
 
     const handleRegistration = async (event) => {
         event.preventDefault();
+        const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
         // Check password strength
         if (!isStrongPassword(password)) {
@@ -48,7 +53,26 @@ const UserRegistration = () => {
                 username: username,
                 email: email,
             });
-
+            console.log(email)
+            console.log('uuuuUser registered:', userCredential.user);
+            const Item = {
+                    user_email: email,
+                    username: username,
+                    first_name: firstName,
+                    last_name: lastName
+                
+            };
+            const params = {
+                TableName: 'userDetails',
+                Item: Item
+            };
+            dynamoDB.put(params, (err, data) => {
+                if (err) {
+                    console.error('Error saving answers:', err);
+                } else {
+                    console.log('Answers saved to DynamoDB!');
+                }
+            });
             // Add Firebase Authentication code here
             console.log('User registered:', userCredential.user);
             localStorage.setItem('userId', userId);
@@ -84,6 +108,15 @@ const UserRegistration = () => {
 
                     console.log(user);
                     const userId = user.uid;
+                    const params = {
+                        TableName: 'userDetails',
+                        Item: {
+                            user_email: user.emailVerified,
+                            username: user.email,
+                            first_name: user.displayName,
+                            last_name: user.displayName
+                        }
+                    };
                     console.log("User Id: " + userId);
                     console.log("User Credentials: " + credential);
                     console.log("Register success: " + result);
@@ -122,6 +155,26 @@ const UserRegistration = () => {
                     placeholder="Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    required
+                    id="username-input"
+                />
+                {/* FIrst Name field */}
+                <label htmlFor="username-input">First Name</label>
+                <input
+                    type="text"
+                    placeholder="First Name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                    id="username-input"
+                />
+                {/* Last Name field */}
+                <label htmlFor="username-input">Last Name</label>
+                <input
+                    type="text"
+                    placeholder="Last Name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
                     required
                     id="username-input"
                 />

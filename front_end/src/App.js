@@ -25,9 +25,8 @@ import ChatBot from './Components/virtualAssitance/ChatBot';
 
 
 AWS.config.update({
-    accessKeyId: 'ASIAZSAR76KN6DBHJ4XL',
-    secretAccessKey: '33xRZu1p6+i0ifPKuRev+2WSm116kR/sZQ6eyiOB',
-    sessionToken:'FwoGZXIvYXdzEJ3//////////wEaDKEjIwfX2TGgRVtH2SLAAY0k0r32iG0qBX+SbmsxDWZ2eX0ugc3XxLRCQKBAlNzs0HsAyzLr6eaUMeXNaKB46AcGQW+AAUxlI7Cj4dMM5Y7jZ5LAbK9iDLY0YdR4Z8BOQICqmp/33ZbA1FiYwC64+y37a/GJmKPn56BbOO9q21thgEt8l8rDMjk2on99RPg3AYokHDVKb5tUUIC1h/cp0ZpncHURA1K/5/+2//rlhIVVrpKRpqp4cOsvFo47/F67W074UVivHhn2NNjFcYFwgSj7pbWmBjItt2iR6nXKlXi3PZc2sIMMvoAVDnJXwS9qupO+wsh9wym/D5I05bvzlPVTi+BW',
+    accessKeyId: 'AKIAQHAP7NSQ7DZKVZIP',
+    secretAccessKey: '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',
     region: 'us-east-1'
   });
 
