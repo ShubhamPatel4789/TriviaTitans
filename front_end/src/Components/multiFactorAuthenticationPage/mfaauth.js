@@ -6,8 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import AWS from 'aws-sdk';
 
 const MultiFactorAuth = () => {
-    const location = useLocation();
-    const userId = location.state?.userId;
+    
+    const userId = localStorage.getItem('userId');
     const navigate = useNavigate();
     const [q1, setQ1] = useState('');
     const [q2, setQ2] = useState('');

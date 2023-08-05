@@ -6,11 +6,14 @@ const Userstats = () => {
 
     const userId = localStorage.getItem('userEmail');
     const [user, setUser] = useState('');
-    const [allUsers, setAllUsers] = useState([]);
+    const [userTeam, setUserTeam] = useState([]);
+    const [globalUser, setGlobalUser] = useState([]);
 
     useEffect(() => {
         console.log('User ID user stats:', userId);
         fetchUserStatistics();
+        fetchUserTeamStatistics();
+        globalUserStatistics();
         console.log('User ID user stats:', userId);
     }, []);
 
@@ -32,8 +35,41 @@ const Userstats = () => {
         }
     };
 
-  
-  
+    const fetchUserTeamStatistics = async () => {
+        try {
+            const response = await axios.post(
+                'https://fwqdy26uz7.execute-api.us-east-1.amazonaws.com/stage1',
+                {
+                    body: JSON.stringify({
+                        "user_Id": userId,
+                    }),
+                }
+            );
+            console.log(response.data);
+            setUserTeam(JSON.parse(response.data.body));
+            console.log('User teams:', response.data);
+        } catch (error) {
+            console.error('Error fetching user statistics:', error);
+        }
+    };
+
+    const globalUserStatistics = async () => {
+        try {
+            const response = await axios.post(
+                'https://c1c0eu2ub2.execute-api.us-east-1.amazonaws.com/stage1',
+            );
+            console.log(response.data);
+            setGlobalUser(JSON.parse(response.data.body));
+            console.log('User teams:', response.data);
+        } catch (error) {
+            console.error('Error fetching user statistics:', error);
+        }
+    };
+
+
+
+
+
     return (
         <div>
             <h2>User Statistics</h2>
@@ -41,8 +77,8 @@ const Userstats = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>User</TableCell>
-                            <TableCell>Games Played</TableCell>
+                            <TableCell>User ID</TableCell>
+                            <TableCell>Total Score</TableCell>
                             <TableCell>Wins</TableCell>
                             <TableCell>Losses</TableCell>
                             <TableCell>Wins/Loss ratio</TableCell>
@@ -58,45 +94,59 @@ const Userstats = () => {
                             <TableCell>{user.losses}</TableCell>
                             <TableCell>{(user.wins / user.losses).toFixed(2)}</TableCell>
                             <TableCell>{user.total_points}</TableCell>
-                            
-                            {/* <TableCell>
-                                {allUsers.map((otherUser) => (
-                                    <button
-                                        key={otherUser.id}
-                                        onClick={() => compareAchievements(otherUser)}
-                                    >
-                                        Compare with {otherUser.name}
-                                    </button>
-                                ))}
-                            </TableCell> */}
+
                         </TableRow>
                     </TableBody>}
                 </Table>
             </TableContainer>
 
-            {/* <TableContainer component={Paper}>
+            <h2>User Team Statistics</h2>
+            <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>User name</TableCell>
+                            <TableCell>User</TableCell>
                             <TableCell>Game ID</TableCell>
                             <TableCell>Team Name</TableCell>
+                            <TableCell>Team Score</TableCell>
                             <TableCell>Category</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {userTeam.map((dataItem, index) => (
+                            <TableRow key={index}>
+                                <TableCell>{dataItem.user_id}</TableCell>
+                                <TableCell>{dataItem.game_id}</TableCell>
+                                <TableCell>{dataItem.team_name}</TableCell>
+                                <TableCell>{dataItem.total_score}</TableCell>
+                                <TableCell>{dataItem.category}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            <h2>Global Leaderboard</h2>
+            <TableContainer component={Paper}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>User ID</TableCell>
                             <TableCell>Total Score</TableCell>
                         </TableRow>
                     </TableHead>
-                    <h1>user</h1>
-                    {user && <TableBody>
-                        <TableRow>
-                            <TableCell>{user.name}</TableCell>
-                            <TableCell>{user.gamesPlayed}</TableCell>
-                            <TableCell>{user.wins}</TableCell>
-                            <TableCell>{user.losses}</TableCell>
-                    
-                        </TableRow>
-                    </TableBody>}
+                    <TableBody>
+                        {Object.entries(globalUser).map(([userId, totalScore]) => (
+                            <TableRow key={userId}>
+                                <TableCell>{userId}</TableCell>
+                                <TableCell>{totalScore}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
                 </Table>
-            </TableContainer> */}
+            </TableContainer>
+
+
         </div>
     );
 };

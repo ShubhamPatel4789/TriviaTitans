@@ -5,8 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import AWS from 'aws-sdk';
 
 const SingleFactorAuth = () => {
-    const location = useLocation();
-    const userId = location.state?.userId;
+    const userId = localStorage.getItem('userId');
     const navigate = useNavigate();
     const [answer, setAnswer] = useState('');
     const [isValidAnswer, setIsValidAnswer] = useState(null);
@@ -16,7 +15,6 @@ const SingleFactorAuth = () => {
         event.preventDefault();
 
         // Get the authenticated user's ID
-        const userId = location.state?.userId;
         console.log(' login mfa userId:', userId);
 
         // Define the input for the Lambda function
