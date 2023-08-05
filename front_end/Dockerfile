@@ -1,20 +1,11 @@
+FROM node:16.15.1 as build
+WORKDIR /front-end
 
-FROM node:14-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-
-
-RUN npm install
-
+COPY package*.json .
+RUN npm install --force
 COPY . .
 
-
 RUN npm run build
-
-
-EXPOSE 3000
-
-
-CMD ["npm", "start"]
+FROM nginx:1.19
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /front-end/build /usr/share/nginx/html
